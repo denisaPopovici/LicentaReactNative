@@ -17,6 +17,8 @@ import Map from './components/Map';
 import ProfileSettings from './components/ProfileSettings';
 import ProfileScreen from './components/Profile';
 import Tabs from './components/BottomTabNavigator';
+import Feed from './components/Feed';
+import Comments from './components/Comments';
 
 // function arePointsNear(latitude, longitude, centerLatitude, centerLongitude, km) {
 //   var ky = 40000 / 360;
@@ -146,6 +148,8 @@ function App() {
           <Stack.Screen name="Map" component={Map}/>
           <Stack.Screen name="Settings" component={ProfileSettings}/>
           <Stack.Screen name="Profile" component={ProfileScreen}/>
+          <Stack.Screen name="Feed" component={Feed} options={{headerLeft: () => null}}/>
+          <Stack.Screen name="Comments" component={Comments} options={{headerTitle: "Comments", headerTransparent: false}}/>
         </Stack.Navigator>
       </NavigationContainer>
 

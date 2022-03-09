@@ -7,7 +7,6 @@ import {
     Text,
     TouchableRipple,
 } from 'react-native-paper';
-import images from '../images';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default class ProfileScreen extends React.Component {
@@ -31,7 +30,7 @@ export default class ProfileScreen extends React.Component {
                 <View style={styles.userInfoSection}>
                     <View style={{flexDirection: 'row', marginTop: 15}}>
                         <Avatar.Image
-                            source={{uri: 'http://localhost:8080' + current_user.image}}
+                            source={{uri: 'https://0b34-2a02-2f0e-51d-1f00-3150-5a9f-2522-9658.ngrok.io' + current_user.image}}
                             size={80}
                         />
                         <View style={{marginLeft: 20}}>

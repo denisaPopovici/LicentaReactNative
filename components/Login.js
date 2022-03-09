@@ -13,6 +13,7 @@ class Login extends React.Component {
   };
 
   current_user = {
+      id: '',
       username: '',
       first_name: '',
       last_name: '',
@@ -24,7 +25,7 @@ class Login extends React.Component {
   login = async props => {
       if(this.state.credentials.password !== '' && this.state.credentials.username !== '') {
           // --FETCH
-          await fetch('http://localhost:8080/api/custom-user/' + this.state.credentials.username.toString(), {
+          await fetch('https://0b34-2a02-2f0e-51d-1f00-3150-5a9f-2522-9658.ngrok.io/api/custom-user/' + this.state.credentials.username.toString(), {
               method: 'GET',
               headers: {'Content-Type': 'application/json', Accept: 'application/json'},
               // body: JSON.stringify(this.state.credentials.username),
@@ -34,6 +35,7 @@ class Login extends React.Component {
                   if (data === []) {
                       Alert.alert("A user with this credentials does not exist! ", [{text: "OK"}])
                   } else {
+                      this.current_user.id = data['id']
                       this.current_user.first_name = data['first_name']
                       this.current_user.last_name = data['last_name']
                       this.current_user.username = data['username']

@@ -24,7 +24,7 @@ class Signup extends React.Component {
     signup = async () => {
         if(this.state.credentials.password !== '' && this.state.credentials.username !== '' && this.state.credentials.email !== '' && this.state.credentials.firstName !== '' && this.state.credentials.lastName !== ''){
             // --FETCH
-            await fetch('https://1e3b-92-114-82-175.ngrok.io/api/custom-users/', {
+            await fetch('https://0b34-2a02-2f0e-51d-1f00-3150-5a9f-2522-9658.ngrok.io/api/custom-users/', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', Accept: 'application/json'},
                 body: JSON.stringify(this.state.credentials),

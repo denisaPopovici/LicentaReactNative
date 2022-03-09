@@ -7,7 +7,6 @@ import {
     TextInput,
     StyleSheet,
 } from 'react-native';
-import images from '../images';
 
 import {useTheme} from 'react-native-paper';
 

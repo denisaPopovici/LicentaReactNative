@@ -32,7 +32,7 @@ const Tabs = () => {
                 tabBarIcon: ({focused}) => (
                     <View style={{alignItems: 'center', justifyContent: 'center', top: 10}}>
                         <Image
-                            source={require('../assets/icons/home.png')}
+                            source={require('../assets/images/home.png')}
                             resizeMode='contain'
                             style={{
                                 width: 25,

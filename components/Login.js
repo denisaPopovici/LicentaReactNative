@@ -1,8 +1,7 @@
 import React, {Component} from 'react';
 import {View, Text, StyleSheet, TextInput, Button, Alert} from 'react-native';
 import MainWindow from './MainWindow';
-import Tabs from './BottomTabNavigator'
-
+import { AsyncStorage } from 'react-native';
 class Login extends React.Component {
   constructor(props) {
     super(props);
@@ -20,12 +19,15 @@ class Login extends React.Component {
       email: '',
       image: '',
       about: '',
+      level: '',
   }
+
+
 
   login = async props => {
       if(this.state.credentials.password !== '' && this.state.credentials.username !== '') {
           // --FETCH
-          await fetch('https://0b34-2a02-2f0e-51d-1f00-3150-5a9f-2522-9658.ngrok.io/api/custom-user/' + this.state.credentials.username.toString(), {
+          await fetch(ngrok + '/api/custom-user/' + this.state.credentials.username.toString(), {
               method: 'GET',
               headers: {'Content-Type': 'application/json', Accept: 'application/json'},
               // body: JSON.stringify(this.state.credentials.username),
@@ -42,8 +44,16 @@ class Login extends React.Component {
                       this.current_user.email = data['email']
                       this.current_user.about = data['about']
                       this.current_user.image = data['image']
-                      console.log(this.current_user.username, 'login')
-                      this.props.navigation.navigate('Main', {current_user: this.current_user});
+                      this.current_user.level = data['level']
+                      AsyncStorage.setItem('id', JSON.stringify(this.current_user.id))
+                      AsyncStorage.setItem('first_name', JSON.stringify(this.current_user.first_name))
+                      AsyncStorage.setItem('last_name', JSON.stringify(this.current_user.last_name))
+                      AsyncStorage.setItem('username', JSON.stringify(this.current_user.username))
+                      AsyncStorage.setItem('email', JSON.stringify(this.current_user.email))
+                      AsyncStorage.setItem('about', JSON.stringify(this.current_user.about))
+                      AsyncStorage.setItem('image', JSON.stringify(this.current_user.image))
+                      AsyncStorage.setItem('level', JSON.stringify(this.current_user.level))
+                      this.props.navigation.navigate('Main');
                   }
               })
               .catch(err => console.error(err));

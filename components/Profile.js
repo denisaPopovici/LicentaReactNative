@@ -1,113 +1,309 @@
 import React from 'react';
-import {View, SafeAreaView, StyleSheet, TouchableHighlight} from 'react-native';
 import {
-    Avatar,
-    Title,
-    Caption,
+    View,
+    SafeAreaView,
+    StyleSheet,
+    TouchableHighlight,
+    Image,
+    Button,
     Text,
-    TouchableRipple,
-} from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+    TouchableOpacity,
+    Alert, AsyncStorage,
+} from 'react-native';
+import Header from './Utils/Header';
+import {Divider} from 'react-native-elements/dist/divider/Divider';
+import {ScrollView} from 'react-native-gesture-handler';
+import Icon from 'react-native-vector-icons/Ionicons';
+import TabNavigator from './Utils/TabNavigator';
 
 export default class ProfileScreen extends React.Component {
 
     constructor(props) {
         super(props);
+        this.getAsyncData();
+    }
+
+    getAsyncData = async () => {
+        const id = await AsyncStorage.getItem('id');
+        const username = await AsyncStorage.getItem('username');
+        const first_name = await AsyncStorage.getItem('first_name');
+        const last_name = await AsyncStorage.getItem('last_name');
+        const email = await AsyncStorage.getItem('email');
+        const image = await AsyncStorage.getItem('image');
+        const about = await AsyncStorage.getItem('about');
+        const level = await AsyncStorage.getItem('level');
+        this.currentUser.id = JSON.parse(id)
+        this.currentUser.username = JSON.parse(username)
+        this.currentUser.first_name = JSON.parse(first_name)
+        this.currentUser.last_name = JSON.parse(last_name)
+        this.currentUser.email = JSON.parse(email)
+        this.currentUser.image = JSON.parse(image)
+        this.currentUser.about = JSON.parse(about)
+        this.currentUser.level = JSON.parse(level)
+
+    }
+
+    currentUser = {
+        id: '',
+        username: '',
+        first_name: '',
+        last_name: '',
+        email: '',
+        image: '',
+        about: '',
+        level: '',
+    }
+
+    state = {
+        posts: [],
+        likedPosts: [], //all the posts the user likes
+        noFollowers: 0,
+        noVisitedLocations: 0,
+        profileUser: '', //user that owns the profile
+        doesFollow: '',
+    };
+
+    isLiked(post) {
+        return this.state.likedPosts.some(item => post.id === item.id_post);
+    }
+
+    allPostsUserLikes = async () => {
+        let result = []
+        let index = 0
+        // --FETCH
+        await fetch(ngrok + '/api/user/' + this.currentUser.id + '/liked-posts', {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        })
+            .then(response => response.json())
+            .then(data => {
+                {
+                    for(var i=0; i<data.length; i++){
+                        var obj = data[i]
+                        result[index] = obj['id_post']
+                        index = index + 1
+                    }
+
+                }
+            })
+            .catch(err => console.error(err));
+        this.setState({likedPosts: result})
+        return result
+
+    };
+
+    likePost = async ({post}) => {
+        if(post !== '') {
+            // --FETCH
+            await fetch(ngrok + '/api/posts/' + post.id + '/users/' + this.currentUser.id + '/like-post', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+            })
+                .then(response => response.json())
+                .then(data => {
+                    //console.log(data);
+                })
+                .catch(err => console.error(err));
+            this.getPosts();
+            this.allPostsUserLikes();
+        }
+        else {
+            Alert.alert("Null post!", [{text: "OK" }])
+        }
+
+    };
+
+    followUser = async () => {
+            // --FETCH
+            await fetch(ngrok + '/api/user/' + this.currentUser.id + '/follows/' + this.state.profileUser.id, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+            })
+                .then(response => response.json())
+                .then(data => {
+                    //console.log(data);
+                })
+                .catch(err => console.error(err));
+            this.getFollowers();
+            this.doesUserFollowUser();
+    };
+
+    getPosts= async () => {
+        let result = [];
+        await fetch(ngrok + '/api/user/' + this.state.profileUser.id + '/posts', {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        }).then(response => response.json())
+            .then(data => {
+                result = data;
+            })
+            .catch(err => console.error(err));
+        this.setState({posts: result} )
+        return result;
+    };
+
+    getFollowers= async () => {
+        let result = [];
+        await fetch(ngrok + '/api/user/' + this.state.profileUser.id + '/followers', {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        }).then(response => response.json())
+            .then(data => {
+                result = data;
+            })
+            .catch(err => console.error(err));
+        this.setState({noFollowers: result.length} )
+        return result.length;
+    };
+
+    doesUserFollowUser= async () => {
+        let result = [];
+        await fetch(ngrok + '/api/does-user/' + this.currentUser.id + '/follow/' + this.state.profileUser.id, {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        }).then(response => response.json())
+            .then(data => {
+                result = data;
+            })
+            .catch(err => console.error(err));
+        this.setState({doesFollow: result.length} )
+        return result.length;
+    };
+
+    getAllVisitedLocations= async () => {
+        let result = [];
+        await fetch(ngrok + '/api/user/' + this.state.profileUser.id + '/visited-locations', {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        }).then(response => response.json())
+            .then(data => {
+                result = data;
+            })
+            .catch(err => console.error(err));
+        this.setState({noVisitedLocations: result.length} )
+        return result.length;
+    };
+
+    async componentDidMount() {
+        const result = await this.getPosts();
+        const resultLiked = await this.allPostsUserLikes();
+        const resultFollowers = await this.getFollowers();
+        const doesFollow = await this.doesUserFollowUser();
+        const resultLocations = await this.getAllVisitedLocations();
     }
 
     render() {
-        const current_user = this.props.route.params['current_user'];
-        console.log(current_user)
-
+        this.state.profileUser = this.props.route.params['profile_user'];
         return (
             <SafeAreaView style={styles.container}>
-                <TouchableHighlight onPress={()=>{this.props.navigation.navigate('Settings')}} activeOpacity={0.8} underlayColor="#DDDDDD" style={{marginTop: 20}}>
-                    <View View style = {{alignItems:'center', height: 60, flexDirection: 'row', textAlign: 'center', left: 10}}>
-                        <Icon name="cog" style={styles.icon} />
-                        <Text style={{fontSize: 20}}> Settings </Text>
-                    </View>
-                </TouchableHighlight>
-                <View style={styles.userInfoSection}>
-                    <View style={{flexDirection: 'row', marginTop: 15}}>
-                        <Avatar.Image
-                            source={{uri: 'https://0b34-2a02-2f0e-51d-1f00-3150-5a9f-2522-9658.ngrok.io' + current_user.image}}
-                            size={80}
-                        />
-                        <View style={{marginLeft: 20}}>
-                            <Title style={[styles.title, {
-                                marginTop: 15,
-                                marginBottom: 5,
-                            }]}>{current_user.first_name} {current_user.last_name}</Title>
-                            <Caption style={styles.caption}>@{current_user.username}</Caption>
+                <Header/>
+                <View>
+                    <View style={{flexDirection: 'row'}}>
+                        <View style={{flex : 1, marginLeft: 4}}>
+                            <Image source={{uri: ngrok + this.state.profileUser.image}} style={{width: 75, height: 75, borderRadius: 37.5}}/>
+                        </View>
+                        <View style={{flex : 3, marginTop: 10}}>
+                            <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+                                <View style={{alignItems: 'center'}}>
+                                    <Text> {this.state.noVisitedLocations} </Text>
+                                    <Text style={{fontSize: 10, color: 'grey'}}> locations </Text>
+                                </View>
+                                <View style={{alignItems: 'center'}}>
+                                    <Text> {this.state.noFollowers} </Text>
+                                    <Text style={{fontSize: 10, color: 'grey'}}> followers </Text>
+                                </View>
+                                <View style={{alignItems: 'center'}}>
+                                    <Text> {this.state.profileUser.level} </Text>
+                                    <Text style={{fontSize: 10, color: 'grey'}}> level </Text>
+                                </View>
+                            </View>
+                            <View style={{flexDirection: 'row', marginTop: 10}}>
+                                {this.state.profileUser.id === this.currentUser.id ? null :
+                                    <TouchableOpacity style={{
+                                        borderWidth: 1,
+                                        borderColor: 'black',
+                                        width: 180,
+                                        alignItems: 'center',
+                                    }} onPress={() => this.followUser()}>
+                                        <View
+                                            style={{alignItems: 'flex-start', flexDirection: 'row', textAlign: 'left'}}>
+                                            {this.state.doesFollow === 0 ?
+                                                <Icon name='add-circle-outline' size={15} style={{marginTop: 3}}/>
+                                                : <Icon name='checkbox-outline' size={15} style={{marginTop: 3}}/>
+                                            }
+                                            { this.state.doesFollow === 0 ?
+                                                <Text style={{fontSize: 15, marginTop: 2}}>Follow </Text>
+                                                : <Text style={{fontSize: 15, marginTop: 2}}> Following </Text>
+                                            }
+                                        </View>
+                                    </TouchableOpacity>
+                                }
+                                {this.state.profileUser.id === this.currentUser.id ?
+                                    <TouchableOpacity style={{marginLeft: 230, marginTop: 3, flexDirection: 'row'}} onPress={() => {
+                                        this.props.navigation.navigate('ProfileSettings', )
+                                    }}>
+                                        <Icon name='settings-outline' size={20}/>
+                                    </TouchableOpacity> : null
+                                }
+                            </View>
                         </View>
                     </View>
-                </View>
-
-                <View style={styles.userInfoSection}>
-                    <View style={styles.row}>
-                        <Icon name="map-marker-radius" color="#777777" size={20}/>
-                        <Text style={{color: "#777777", marginLeft: 20}}> Cluj, Romania </Text>
-                    </View>
-                    <View style={styles.row}>
-                        <Icon name="phone" color="#777777" size={20}/>
-                        <Text style={{color: "#777777", marginLeft: 20}}>+91-900000009</Text>
-                    </View>
-                    <View style={styles.row}>
-                        <Icon name="email" color="#777777" size={20}/>
-                        <Text style={{color: "#777777", marginLeft: 20}}>{current_user.email}</Text>
+                    <View style={{paddingBottom: 10, paddingHorizontal: 10, marginTop: 5}}>
+                        <Text style={{fontWeight: 'bold', marginBottom: 10, marginLeft: 6}}> {this.state.profileUser.username} </Text>
+                        <Text style={{fontSize: 15}}> {this.state.profileUser.first_name } {this.state.profileUser.last_name} </Text>
+                        <Text> {this.state.profileUser.about} </Text>
                     </View>
                 </View>
-                <View style={styles.infoBoxWrapper}>
-                    <View style={[styles.infoBox, {
-                        borderRightColor: '#dddddd',
-                        borderRightWidth: 1
-                    }]}>
-                        <Title>1</Title>
-                        <Caption>Visited places</Caption>
-                    </View>
-                    {/*<View style={styles.infoBox}>*/}
-                    {/*    <Title>12</Title>*/}
-                    {/*    <Caption>Orders</Caption>*/}
-                    {/*</View>*/}
-                </View>
-
-                <View style={styles.menuWrapper}>
-                    <TouchableRipple onPress={() => {
-                    }}>
-                        <View style={styles.menuItem}>
-                            <Icon name="heart-outline" color="#FF6347" size={25}/>
-                            <Text style={styles.menuItemText}>Your Favorites</Text>
-                        </View>
-                    </TouchableRipple>
-                    {/*<TouchableRipple onPress={() => {*/}
-                    {/*}}>*/}
-                    {/*    <View style={styles.menuItem}>*/}
-                    {/*        <Icon name="credit-card" color="#FF6347" size={25}/>*/}
-                    {/*        <Text style={styles.menuItemText}>Payment</Text>*/}
-                    {/*    </View>*/}
-                    {/*</TouchableRipple>*/}
-                    {/*<TouchableRipple onPress={() => {*/}
-                    {/*}}>*/}
-                    {/*    <View style={styles.menuItem}>*/}
-                    {/*        <Icon name="share-outline" color="#FF6347" size={25}/>*/}
-                    {/*        <Text style={styles.menuItemText}>Tell Your Friends</Text>*/}
-                    {/*    </View>*/}
-                    {/*</TouchableRipple>*/}
-                    {/*<TouchableRipple onPress={() => {*/}
-                    {/*}}>*/}
-                    {/*    <View style={styles.menuItem}>*/}
-                    {/*        <Icon name="account-check-outline" color="#FF6347" size={25}/>*/}
-                    {/*        <Text style={styles.menuItemText}>Support</Text>*/}
-                    {/*    </View>*/}
-                    {/*</TouchableRipple>*/}
-                    <TouchableRipple onPress={() => {
-                    }}>
-                        <View style={styles.menuItem}>
-                            <Icon name="settings-outline" color="#FF6347" size={25}/>
-                            <Text style={styles.menuItemText}>About us</Text>
-                        </View>
-                    </TouchableRipple>
-                </View>
+                <ScrollView>
+                    {
+                        this.state.posts.map((post, index) => {
+                            return (
+                                <View style={{marginBottom: 20}}>
+                                    <Divider width={1} orientation='vertical'/>
+                                    <View style={{flexDirection: 'row', marginTop: 5, marginLeft: 10}}>
+                                        <TouchableOpacity>
+                                            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                                <Icon name="pin" size={20} />
+                                                <Text style={{fontSize: 20, fontWeight:'200', color:'black', fontFamily: 'Georgia'}}>
+                                                    { post.location_name}
+                                                </Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <View style={{width:'100%', height: 350}}>
+                                        <Image style={{height:'100%', resizeMode: 'cover', marginLeft: 10, marginRight: 10, marginTop: 5}} source={{uri: ngrok + post.image}}/>
+                                    </View>
+                                    <View style={{flexDirection: 'row', marginTop: 10, marginLeft: 15, marginBottom: 0, alignContent: 'center', justifyContent: 'center'}}>
+                                        <Text style={{flexWrap: "wrap", flex:1, alignContent: 'center', justifyContent: 'center'}}>
+                                            <Text style={{fontWeight: '700', fontSize: 18, fontFamily: 'Georgia'}}>
+                                                 ─
+                                            </Text>
+                                            <Text style={{fontSize: 18, fontFamily: 'Georgia'}}>
+                                                {' '+post.description}
+                                            </Text>
+                                        </Text>
+                                    </View>
+                                    <View style={{marginHorizontal: 10, marginLeft: 15}}>
+                                        <View style={{ marginTop: 4, flexDirection: 'row', width: '32%'}}>
+                                            <TouchableOpacity style={{marginRight: 10}} onPress={() => { this.likePost({post}); }}>
+                                                <Icon style={{color: '#15902C'}} name={this.state.likedPosts.includes(post.id) ? "heart" : "heart-outline"} size={25} />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity onPress={() => { this.props.navigation.navigate('Comments', {current_post: post}) }}>
+                                                <Icon name="chatbubble-outline" size={25} />
+                                            </TouchableOpacity>
+                                        </View>
+                                        <View style={{flexDirection: 'row', marginTop: 4, marginLeft: 3}}>
+                                            <Text style={{fontWeight: '600'}}>
+                                                {post.no_likes} {post.no_likes == 1 ? 'like' : 'likes'}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
+                            )
+                        })
+                    }
+                </ScrollView>
+                <TabNavigator navigation={this.props.navigation}/>
             </SafeAreaView>
         );
     }
@@ -115,7 +311,8 @@ export default class ProfileScreen extends React.Component {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        backgroundColor: '#DFEEEA',
+        flex: 1
     },
     userInfoSection: {
         paddingHorizontal: 30,

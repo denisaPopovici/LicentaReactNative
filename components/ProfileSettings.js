@@ -18,6 +18,7 @@ import BottomSheet from 'reanimated-bottom-sheet';
 import Animated from 'react-native-reanimated';
 
 import ImagePicker from 'react-native-image-crop-picker';
+import TabNavigator from './Utils/TabNavigator';
 
 const ProfileSettings = () => {
 
@@ -267,6 +268,7 @@ const ProfileSettings = () => {
                     <Text style={styles.panelButtonTitle}>Submit</Text>
                 </TouchableOpacity>
             </Animated.View>
+            {/*<TabNavigator navigation={this.props.navigation}/>*/}
         </View>
     );
 };

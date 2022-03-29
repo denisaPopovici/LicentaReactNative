@@ -17,7 +17,7 @@ const PostHeader = ({post}) => {
     return(
         <View style={{flexDirection: 'row', justifyContent: 'space-between', margin: 5, alignItems: 'center'}}>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                <Image source={{uri:  'https://cb1b-2a02-2f0e-51d-1f00-60ce-43d4-4aad-1689.ngrok.io' + post.image }}/>
+                <Image source={{uri:  ngrok + post.image }}/>
                 <Text style={{marginLeft: 5, fontWeight: '200'}}>
                     {post.user}
                 </Text>

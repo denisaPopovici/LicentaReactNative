@@ -2,7 +2,6 @@ import React, {Component, useState} from 'react';
 import {View, Text, StyleSheet, TextInput, Button, Alert} from 'react-native';
 import MainWindow from './MainWindow';
 
-
 class Signup extends React.Component {
     constructor(props) {
         super(props);
@@ -24,14 +23,13 @@ class Signup extends React.Component {
     signup = async () => {
         if(this.state.credentials.password !== '' && this.state.credentials.username !== '' && this.state.credentials.email !== '' && this.state.credentials.firstName !== '' && this.state.credentials.lastName !== ''){
             // --FETCH
-            await fetch('https://0b34-2a02-2f0e-51d-1f00-3150-5a9f-2522-9658.ngrok.io/api/custom-users/', {
+            await fetch(ngrok + '/api/custom-users/', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', Accept: 'application/json'},
                 body: JSON.stringify(this.state.credentials),
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data);
                     if (String(data.username) === 'A user with that username already exists.') {
                         Alert.alert("This username already exists!", [{text: "OK" }]);
                     } else {

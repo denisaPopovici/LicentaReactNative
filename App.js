@@ -16,9 +16,10 @@ import Signup from './components/Signup';
 import Map from './components/Map';
 import ProfileSettings from './components/ProfileSettings';
 import ProfileScreen from './components/Profile';
-import Tabs from './components/BottomTabNavigator';
 import Feed from './components/Feed';
 import Comments from './components/Comments';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import SearchBar from './components/SearchBar';
 
 // function arePointsNear(latitude, longitude, centerLatitude, centerLongitude, km) {
 //   var ky = 40000 / 360;
@@ -129,7 +130,9 @@ import Comments from './components/Comments';
 //   );
 // }
 //
+
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
 function App() {
   const [token, setToken] = useState('');
@@ -146,14 +149,24 @@ function App() {
           <Stack.Screen name="Main" component={MainWindow} options={{header: () => null}}/>
           <Stack.Screen name="Signup" component={Signup}/>
           <Stack.Screen name="Map" component={Map}/>
-          <Stack.Screen name="Settings" component={ProfileSettings}/>
           <Stack.Screen name="Profile" component={ProfileScreen}/>
-          <Stack.Screen name="Feed" component={Feed} options={{headerLeft: () => null}}/>
+          <Stack.Screen name="Feed" component={Feed} />
           <Stack.Screen name="Comments" component={Comments} options={{headerTitle: "Comments", headerTransparent: false}}/>
+          <Stack.Screen name="ProfileSettings" component={ProfileSettings}/>
+          <Stack.Screen name="Search" component={SearchBar}/>
         </Stack.Navigator>
       </NavigationContainer>
-
   );
+  // return (
+  //     <>
+  //       <NavigationContainer>
+  //         <Tab.Navigator>
+  //           <Tab.Screen name="Feed" component={Feed}/>
+  //           <Tab.Screen name="Profile" component={ProfileScreen}/>
+  //         </Tab.Navigator>
+  //       </NavigationContainer>
+  //     </>
+  // )
 }
 
 // const App = () => {

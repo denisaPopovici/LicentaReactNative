@@ -3,7 +3,6 @@ import {View, Text, StyleSheet, TextInput, Button, Alert, Image} from 'react-nat
 import MapView from 'react-native-maps';
 import { Marker } from "react-native-maps";
 import Geolocation from '@react-native-community/geolocation';
-import Tabs from '../components/BottomTabNavigator';
 import TouchableOpacity from 'react-native-gesture-handler';
 
 function arePointsNear(latitude, longitude, centerLatitude, centerLongitude, km) {

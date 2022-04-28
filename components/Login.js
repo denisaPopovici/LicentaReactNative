@@ -20,6 +20,7 @@ class Login extends React.Component {
       image: '',
       about: '',
       level: '',
+      xp: '',
   }
 
 
@@ -45,6 +46,7 @@ class Login extends React.Component {
                       this.current_user.about = data['about']
                       this.current_user.image = data['image']
                       this.current_user.level = data['level']
+                      this.current_user.xp = data['xp']
                       AsyncStorage.setItem('id', JSON.stringify(this.current_user.id))
                       AsyncStorage.setItem('first_name', JSON.stringify(this.current_user.first_name))
                       AsyncStorage.setItem('last_name', JSON.stringify(this.current_user.last_name))
@@ -53,7 +55,8 @@ class Login extends React.Component {
                       AsyncStorage.setItem('about', JSON.stringify(this.current_user.about))
                       AsyncStorage.setItem('image', JSON.stringify(this.current_user.image))
                       AsyncStorage.setItem('level', JSON.stringify(this.current_user.level))
-                      this.props.navigation.navigate('Main');
+                      AsyncStorage.setItem('xp', JSON.stringify(this.current_user.xp))
+                      this.props.navigation.navigate('Feed');
                   }
               })
               .catch(err => console.error(err));

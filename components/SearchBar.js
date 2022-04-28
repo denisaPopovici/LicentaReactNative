@@ -52,7 +52,7 @@ export default class SearchBar extends React.Component {
     render() {
         return (
         <SafeAreaView style={{flex: 1, backgroundColor: '#DFEEEA'}}>
-            <Header/>
+            <Header navigation={this.props.navigation}/>
             <Searchbar style={{marginTop: 10, marginLeft: 8, marginRight: 8,}} placeholder="Search"
                        onChangeText={this.searchFilterFunction} value={this.state.filteredData}/>
             <ScrollView>

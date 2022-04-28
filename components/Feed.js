@@ -24,7 +24,9 @@ import ProfileSettings from './ProfileSettings';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import SearchBar from './SearchBar';
 import TabNavigator from './Utils/TabNavigator';
-export default class Feed extends React.Component {
+import { useIsFocused } from '@react-navigation/native';
+
+class Feed extends React.Component {
 
     constructor(props) {
         super(props);
@@ -82,6 +84,20 @@ export default class Feed extends React.Component {
         about: '',
         level: '',
     }
+
+    addNotification = async (type, notified, postID, commentID) => {
+            // --FETCH
+            await fetch(ngrok + '/api/notification/' + type + '/to/' + notified + '/from/' +  this.currentUser.id + '/post/' + postID + '/comment/' + commentID, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+            })
+                .then(response => response.json())
+                .then(data => {
+                        console.log(data);
+                    }
+                )
+                .catch(err => console.error(err));
+    };
 
 
     likePost = async ({post}) => {
@@ -186,24 +202,35 @@ export default class Feed extends React.Component {
                 result = data;
             })
             .catch(err => console.error(err));
-
         this.setState({posts: result} )
         return result;
     };
 
+    getPostsEvent = async () => {
+        await this.getAsyncData().then(() =>
+            {this.getPosts();}
+        )
+    }
+
+
     async componentDidMount() {
         await this.getAsyncData();
-        console.log(this.currentUser.id + "CURRENTTTT")
         const resultLiked = await this.allPostsUserLikes();
-        const result = await this.getPosts();
+        if(this.props.isFocused)
+        {
+            console.log("AM FACUT EVENTUL!!!")
+            const result = await this.getPosts();
+        }
     }
 
 
     render() {
+        const {isFocused} = this.props;
+        console.log(this.state.posts.length + "LUNGIME POSTS")
         if(this.currentUser.id) {
             return (
                 <SafeAreaView style={styles.container}>
-                    <Header/>
+                    <Header navigation={this.props.navigation}/>
                     <ScrollView>
                         {
                             this.state.posts.map((post, index) => {
@@ -235,7 +262,15 @@ export default class Feed extends React.Component {
                                             </View>
                                         </View>
                                         <View style={{flexDirection: 'row', marginTop: 5, marginLeft: 10}}>
-                                            <TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={() => {
+                                                this.props.navigation.navigate('Map', {
+                                                    lat: post.location_latitude,
+                                                    lng: post.location_longitude,
+                                                    item: post.location,
+                                                }, {navigation: this.props.navigation})
+                                            }}
+                                            >
                                                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                                     <Icon name="pin" size={25}/>
                                                     <Text style={{
@@ -272,6 +307,7 @@ export default class Feed extends React.Component {
                                             <View style={{marginTop: 4, flexDirection: 'row', width: '32%'}}>
                                                 <TouchableOpacity style={{marginRight: 10}} onPress={() => {
                                                     this.likePost({post});
+                                                    this.addNotification("like", post.user_id, post.id, 0);
                                                 }}>
                                                     <Icon style={{color: '#15902C'}}
                                                           name={this.state.likedPosts.includes(post.id) ? "heart" : "heart-outline"}
@@ -304,6 +340,11 @@ export default class Feed extends React.Component {
             </View>
         );
     }
+}
+
+export default function (props) {
+    const isFocused = useIsFocused();
+    return <Feed {...props} isFocused={isFocused}/>
 }
 
 const styles = StyleSheet.create({

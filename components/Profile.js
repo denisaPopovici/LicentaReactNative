@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
     View,
     SafeAreaView,
@@ -18,9 +18,10 @@ import TabNavigator from './Utils/TabNavigator';
 
 export default class ProfileScreen extends React.Component {
 
+
     constructor(props) {
         super(props);
-        this.getAsyncData();
+        //this.getAsyncData();
     }
 
     getAsyncData = async () => {
@@ -37,7 +38,13 @@ export default class ProfileScreen extends React.Component {
         this.currentUser.first_name = JSON.parse(first_name)
         this.currentUser.last_name = JSON.parse(last_name)
         this.currentUser.email = JSON.parse(email)
-        this.currentUser.image = JSON.parse(image)
+        try{ //image comes from current user, retrieved from server
+            const image_parsed = JSON.parse(image)
+            this.currentUser.image = image_parsed
+        }
+        catch (e) { //profile image was changed, it was not retrieved from server
+            this.currentUser.image = image
+        }
         this.currentUser.about = JSON.parse(about)
         this.currentUser.level = JSON.parse(level)
 
@@ -60,7 +67,8 @@ export default class ProfileScreen extends React.Component {
         noFollowers: 0,
         noVisitedLocations: 0,
         profileUser: '', //user that owns the profile
-        doesFollow: '',
+        doesFollow: 0,
+        profileImage: '',
     };
 
     isLiked(post) {
@@ -166,8 +174,8 @@ export default class ProfileScreen extends React.Component {
                 result = data;
             })
             .catch(err => console.error(err));
-        this.setState({doesFollow: result.length} )
-        return result.length;
+        this.setState({doesFollow: result.length})
+        return result;
     };
 
     getAllVisitedLocations= async () => {
@@ -177,14 +185,34 @@ export default class ProfileScreen extends React.Component {
             headers: {'Content-Type': 'application/json', Accept: 'application/json'},
         }).then(response => response.json())
             .then(data => {
-                result = data;
+                console.log("DATA LOCATII ", data)
+                result = data.length;
             })
             .catch(err => console.error(err));
-        this.setState({noVisitedLocations: result.length} )
-        return result.length;
+        this.setState({noVisitedLocations: result} )
+        return result;
     };
 
+    addNotification = async (type, notified, postID, commentID) => {
+        // --FETCH
+        await fetch(ngrok + '/api/notification/' + type + '/to/' + notified + '/from/' +  this.currentUser.id + '/post/' + postID + '/comment/' + commentID, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        })
+            .then(response => response.json())
+            .then(data => {
+                    console.log(data);
+                }
+            )
+            .catch(err => console.error(err));
+    };
+
+    async componentDidUpdate() {
+        await this.getAsyncData();
+    }
+
     async componentDidMount() {
+        await this.getAsyncData();
         const result = await this.getPosts();
         const resultLiked = await this.allPostsUserLikes();
         const resultFollowers = await this.getFollowers();
@@ -192,15 +220,19 @@ export default class ProfileScreen extends React.Component {
         const resultLocations = await this.getAllVisitedLocations();
     }
 
+
     render() {
-        this.state.profileUser = this.props.route.params['profile_user'];
+        this.state.profileUser = this.props.route.params['profile_user']
         return (
             <SafeAreaView style={styles.container}>
-                <Header/>
+                <Header navigation={this.props.navigation}/>
                 <View>
                     <View style={{flexDirection: 'row'}}>
                         <View style={{flex : 1, marginLeft: 4}}>
-                            <Image source={{uri: ngrok + this.state.profileUser.image}} style={{width: 75, height: 75, borderRadius: 37.5}}/>
+                                <Image source={{
+                                uri: ngrok + this.state.profileUser.image,
+                                cache: "reload",
+                                }} key={this.state.profileUser.image} style={{width: 75, height: 75, borderRadius: 37.5}}/>
                         </View>
                         <View style={{flex : 3, marginTop: 10}}>
                             <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
@@ -224,10 +256,10 @@ export default class ProfileScreen extends React.Component {
                                         borderColor: 'black',
                                         width: 180,
                                         alignItems: 'center',
-                                    }} onPress={() => this.followUser()}>
+                                    }} onPress={() => { this.followUser(); this.addNotification("follow", this.state.profileUser.id, 0, 0)}}>
                                         <View
                                             style={{alignItems: 'flex-start', flexDirection: 'row', textAlign: 'left'}}>
-                                            {this.state.doesFollow === 0 ?
+                                            { this.state.doesFollow === 0 ?
                                                 <Icon name='add-circle-outline' size={15} style={{marginTop: 3}}/>
                                                 : <Icon name='checkbox-outline' size={15} style={{marginTop: 3}}/>
                                             }
@@ -240,7 +272,7 @@ export default class ProfileScreen extends React.Component {
                                 }
                                 {this.state.profileUser.id === this.currentUser.id ?
                                     <TouchableOpacity style={{marginLeft: 230, marginTop: 3, flexDirection: 'row'}} onPress={() => {
-                                        this.props.navigation.navigate('ProfileSettings', )
+                                        this.props.navigation.navigate('ProfileSettings', {navigation: this.props.navigation} )
                                     }}>
                                         <Icon name='settings-outline' size={20}/>
                                     </TouchableOpacity> : null
@@ -254,55 +286,91 @@ export default class ProfileScreen extends React.Component {
                         <Text> {this.state.profileUser.about} </Text>
                     </View>
                 </View>
-                <ScrollView>
-                    {
-                        this.state.posts.map((post, index) => {
-                            return (
-                                <View style={{marginBottom: 20}}>
-                                    <Divider width={1} orientation='vertical'/>
-                                    <View style={{flexDirection: 'row', marginTop: 5, marginLeft: 10}}>
-                                        <TouchableOpacity>
-                                            <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                                <Icon name="pin" size={20} />
-                                                <Text style={{fontSize: 20, fontWeight:'200', color:'black', fontFamily: 'Georgia'}}>
-                                                    { post.location_name}
+                {this.state.posts.length === 0 ?
+                    <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
+                        <Icon name='camera-outline' size={50} />
+                        <Text style={{fontSize: 30, marginBottom: "40%"}}> No posts yet </Text>
+                    </View> :
+                    <ScrollView>
+                        {
+                            this.state.posts.map((post, index) => {
+                                return (
+                                    <View style={{marginBottom: 20}}>
+                                        <Divider width={1} orientation='vertical'/>
+                                        <View style={{flexDirection: 'row', marginTop: 5, marginLeft: 10}}>
+                                            <TouchableOpacity>
+                                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                                    <Icon name="pin" size={20}/>
+                                                    <Text style={{
+                                                        fontSize: 20,
+                                                        fontWeight: '200',
+                                                        color: 'black',
+                                                        fontFamily: 'Georgia'
+                                                    }}>
+                                                        {post.location_name}
+                                                    </Text>
+                                                </View>
+                                            </TouchableOpacity>
+                                        </View>
+                                        <View style={{width: '100%', height: 350}}>
+                                            <Image style={{
+                                                height: '100%',
+                                                resizeMode: 'cover',
+                                                marginLeft: 10,
+                                                marginRight: 10,
+                                                marginTop: 5
+                                            }} source={{uri: ngrok + post.image}}/>
+                                        </View>
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            marginTop: 10,
+                                            marginLeft: 15,
+                                            marginBottom: 0,
+                                            alignContent: 'center',
+                                            justifyContent: 'center'
+                                        }}>
+                                            <Text style={{
+                                                flexWrap: "wrap",
+                                                flex: 1,
+                                                alignContent: 'center',
+                                                justifyContent: 'center'
+                                            }}>
+                                                <Text style={{fontWeight: '700', fontSize: 18, fontFamily: 'Georgia'}}>
+                                                    ─
+                                                </Text>
+                                                <Text style={{fontSize: 18, fontFamily: 'Georgia'}}>
+                                                    {' ' + post.description}
+                                                </Text>
+                                            </Text>
+                                        </View>
+                                        <View style={{marginHorizontal: 10, marginLeft: 15}}>
+                                            <View style={{marginTop: 4, flexDirection: 'row', width: '32%'}}>
+                                                <TouchableOpacity style={{marginRight: 10}} onPress={() => {
+                                                    this.likePost({post});
+                                                    this.addNotification("like", post.user_id, post.id, 0);
+                                                }}>
+                                                    <Icon style={{color: '#15902C'}}
+                                                          name={this.state.likedPosts.includes(post.id) ? "heart" : "heart-outline"}
+                                                          size={25}/>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity onPress={() => {
+                                                    this.props.navigation.navigate('Comments', {current_post: post})
+                                                }}>
+                                                    <Icon name="chatbubble-outline" size={25}/>
+                                                </TouchableOpacity>
+                                            </View>
+                                            <View style={{flexDirection: 'row', marginTop: 4, marginLeft: 3}}>
+                                                <Text style={{fontWeight: '600'}}>
+                                                    {post.no_likes} {post.no_likes == 1 ? 'like' : 'likes'}
                                                 </Text>
                                             </View>
-                                        </TouchableOpacity>
-                                    </View>
-                                    <View style={{width:'100%', height: 350}}>
-                                        <Image style={{height:'100%', resizeMode: 'cover', marginLeft: 10, marginRight: 10, marginTop: 5}} source={{uri: ngrok + post.image}}/>
-                                    </View>
-                                    <View style={{flexDirection: 'row', marginTop: 10, marginLeft: 15, marginBottom: 0, alignContent: 'center', justifyContent: 'center'}}>
-                                        <Text style={{flexWrap: "wrap", flex:1, alignContent: 'center', justifyContent: 'center'}}>
-                                            <Text style={{fontWeight: '700', fontSize: 18, fontFamily: 'Georgia'}}>
-                                                 ─
-                                            </Text>
-                                            <Text style={{fontSize: 18, fontFamily: 'Georgia'}}>
-                                                {' '+post.description}
-                                            </Text>
-                                        </Text>
-                                    </View>
-                                    <View style={{marginHorizontal: 10, marginLeft: 15}}>
-                                        <View style={{ marginTop: 4, flexDirection: 'row', width: '32%'}}>
-                                            <TouchableOpacity style={{marginRight: 10}} onPress={() => { this.likePost({post}); }}>
-                                                <Icon style={{color: '#15902C'}} name={this.state.likedPosts.includes(post.id) ? "heart" : "heart-outline"} size={25} />
-                                            </TouchableOpacity>
-                                            <TouchableOpacity onPress={() => { this.props.navigation.navigate('Comments', {current_post: post}) }}>
-                                                <Icon name="chatbubble-outline" size={25} />
-                                            </TouchableOpacity>
-                                        </View>
-                                        <View style={{flexDirection: 'row', marginTop: 4, marginLeft: 3}}>
-                                            <Text style={{fontWeight: '600'}}>
-                                                {post.no_likes} {post.no_likes == 1 ? 'like' : 'likes'}
-                                            </Text>
                                         </View>
                                     </View>
-                                </View>
-                            )
-                        })
-                    }
-                </ScrollView>
+                                )
+                            })
+                        }
+                    </ScrollView>
+                }
                 <TabNavigator navigation={this.props.navigation}/>
             </SafeAreaView>
         );

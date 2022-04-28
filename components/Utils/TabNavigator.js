@@ -17,30 +17,35 @@ export default class TabNavigator extends React.Component {
 
     constructor(props) {
         super(props);
-        this.getAsyncData();
     }
+
+    getProfileUserById = async (id) => {
+        await fetch(ngrok + '/api/user/' + id +'/get-by-id', {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        })
+            .then(response => response.json())
+            .then(data => {
+                    this.profile_user.id = data['id']
+                    this.profile_user.first_name = data['first_name']
+                    this.profile_user.last_name = data['last_name']
+                    this.profile_user.username = data['username']
+                    this.profile_user.email = data['email']
+                    this.profile_user.about = data['about']
+                    this.profile_user.image = data['image']
+                    this.profile_user.level = data['level']
+                    this.props.navigation.navigate('Profile', {'profile_user' : this.profile_user});
+                }
+            )
+            .catch(err => console.error(err));
+    };
 
     getAsyncData = async () => {
         const id = await AsyncStorage.getItem('id');
-        const username = await AsyncStorage.getItem('username');
-        const first_name = await AsyncStorage.getItem('first_name');
-        const last_name = await AsyncStorage.getItem('last_name');
-        const email = await AsyncStorage.getItem('email');
-        const image = await AsyncStorage.getItem('image');
-        const about = await AsyncStorage.getItem('about');
-        const level = await AsyncStorage.getItem('level');
-        this.currentUser.id = JSON.parse(id)
-        this.currentUser.username = JSON.parse(username)
-        this.currentUser.first_name = JSON.parse(first_name)
-        this.currentUser.last_name = JSON.parse(last_name)
-        this.currentUser.email = JSON.parse(email)
-        this.currentUser.image = JSON.parse(image)
-        this.currentUser.about = JSON.parse(about)
-        this.currentUser.level = JSON.parse(level)
-
+        this.setState({id: JSON.parse(id)})
     }
 
-    currentUser = {
+    profile_user = {
         id: '',
         username: '',
         first_name: '',
@@ -52,9 +57,12 @@ export default class TabNavigator extends React.Component {
     }
 
     state = {
-        currentScreen: '',
+        id: '',
     }
 
+    async componentDidMount() {
+        await this.getAsyncData();
+    }
 
     render() {
         return (
@@ -62,14 +70,11 @@ export default class TabNavigator extends React.Component {
             <View>
                 <View style={styles.container}>
                     <TouchableHighlight style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
-                        this.props.navigation.navigate('Profile', {
-                            'profile_user': this.currentUser
-                        });
+                        this.getProfileUserById(this.state.id);
                     }} activeOpacity={0.8} underlayColor="#DDDDDD">
                         <View style={{alignItems: 'center', flexDirection: 'row', textAlign: 'center'}}>
                             <Icon name= 'person-outline'
                                   style={styles.icon}/>
-
                         </View>
                     </TouchableHighlight>
                     <TouchableHighlight style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
@@ -86,7 +91,9 @@ export default class TabNavigator extends React.Component {
                             <Icon name="search-outline" style={styles.icon}/>
                         </View>
                     </TouchableHighlight>
-                    <TouchableHighlight style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} activeOpacity={0.8} underlayColor="#DDDDDD">
+                    <TouchableHighlight style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
+                        this.props.navigation.navigate('Missions')
+                    }} activeOpacity={0.8} underlayColor="#DDDDDD">
                         <View style={{alignItems: 'center', flexDirection: 'row', textAlign: 'center'}}>
                             <Icon name="map-outline" style={styles.icon}/>
                         </View>

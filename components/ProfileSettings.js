@@ -6,6 +6,7 @@ import {
     ImageBackground,
     TextInput,
     StyleSheet,
+    SafeAreaView, TouchableHighlight, AsyncStorage, Alert,
 } from 'react-native';
 
 import {useTheme} from 'react-native-paper';
@@ -19,40 +20,283 @@ import Animated from 'react-native-reanimated';
 
 import ImagePicker from 'react-native-image-crop-picker';
 import TabNavigator from './Utils/TabNavigator';
+import Header from './Utils/Header'
 
-const ProfileSettings = () => {
+export const setItem = async (type, value) => {
+    try {
+        const jsonValue = JSON.stringify(value)
+        console.log("JSON VALUE :", jsonValue)
+        await AsyncStorage.setItem(type, jsonValue)
+    } catch (e) {
+        console.log('setItemErr', e)
+    }
+}
+
+const ProfileSettings = ({navigation}) => {
 
     const {colors} = useTheme();
+    const [id, setId] = useState(null);
+    const [username, setUsername] = useState(null);
+    const [firstName, setFirstName] = useState(null);
+    const [lastName, setLastName] = useState(null);
+    const [email, setEmail] = useState(null);
     const [image, setImage] = useState(null);
+    const [about, setAbout] = useState(null);
+    const [showTabNavigator, setShowTabNavigator] = useState(true);
+
+    let profile_user = {
+        id: '',
+        username: '',
+        first_name: '',
+        last_name: '',
+        email: '',
+        image: '',
+        about: '',
+        level: '',
+    }
+
+    useEffect(() => {
+        const fetchData = async () => {
+            await getAsyncData();
+        }
+        fetchData();
+    }, []);
 
     let bs;
     bs = React.createRef();
     let fall;
     fall = new Animated.Value(1);
 
+    const getProfileUserById = async (id) => {
+        await fetch(ngrok + '/api/user/' + id +'/get-by-id', {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        })
+            .then(response => response.json())
+            .then(data => {
+                    profile_user.id = data['id']
+                    profile_user.first_name = data['first_name']
+                    profile_user.last_name = data['last_name']
+                    profile_user.username = data['username']
+                    profile_user.email = data['email']
+                    profile_user.about = data['about']
+                    profile_user.image = data['image']
+                    profile_user.level = data['level']
+                    navigation.navigate('Profile', {'profile_user' : profile_user});
+                }
+            )
+            .catch(err => console.error(err));
+    };
+
+    const updateInfo = async () => {
+        await changeImage(image);
+        await changeUsername();
+        await changeFirstName();
+        await changeLastName();
+        await changeEmail();
+        await changeAbout();
+        await getProfileUserById(id)
+
+    }
+
+    const getAsyncData = async () => {
+        const id = await AsyncStorage.getItem('id');
+        const username = await AsyncStorage.getItem('username');
+        const first_name = await AsyncStorage.getItem('first_name');
+        const last_name = await AsyncStorage.getItem('last_name');
+        const email = await AsyncStorage.getItem('email');
+        const image = await AsyncStorage.getItem('image');
+        const about = await AsyncStorage.getItem('about');
+        setId(JSON.parse(id))
+        setUsername(JSON.parse(username))
+        setFirstName(JSON.parse(first_name))
+        setLastName(JSON.parse(last_name))
+        setEmail(JSON.parse(email))
+        try{ //image comes from current user, retrieved from server
+            const image_parsed = JSON.parse(image)
+            setImage(ngrok + image_parsed)
+        }
+        catch (e) { //profile image was changed, it was not retrieved from server
+            setImage(ngrok + image)
+        }
+        setAbout(JSON.parse(about))
+    }
+
+    const changeAbout = async () => {
+        var data = new FormData();
+        if( about != ''){
+            // --FETCH
+            data.append('about', about)
+            await fetch(ngrok + '/api/user/' + id + "/about", {
+                method: 'PUT',
+                headers: {'Content-Type': 'multipart/form-data', Accept: 'application/json'},
+                body: data,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setItem('about', about)
+                })
+                .catch(err => console.error(err));
+        }
+        else {
+            Alert.alert("About cannot be null!", [{text: "OK" }])
+        }
+    };
+
+    const changeFirstName = async () => {
+        var data = new FormData();
+        if( firstName != ''){
+            // --FETCH
+            data.append('first_name', firstName)
+            await fetch(ngrok + '/api/user/' + id + "/first-name", {
+                method: 'PUT',
+                headers: {'Content-Type': 'multipart/form-data', Accept: 'application/json'},
+                body: data,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setItem('first_name', firstName)
+                })
+                .catch(err => console.error(err));
+        }
+        else {
+            Alert.alert("First name cannot be null!", [{text: "OK" }])
+        }
+    };
+
+    const changeLastName = async () => {
+        var data = new FormData();
+        if( lastName != ''){
+            // --FETCH
+            data.append('last_name', lastName)
+            await fetch(ngrok + '/api/user/' + id + "/last-name", {
+                method: 'PUT',
+                headers: {'Content-Type': 'multipart/form-data', Accept: 'application/json'},
+                body: data,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setItem('last_name', lastName)
+                })
+                .catch(err => console.error(err));
+        }
+        else {
+            Alert.alert("Last name cannot be null!", [{text: "OK" }])
+        }
+    };
+
+    const changeEmail = async () => {
+        var data = new FormData();
+        if( email != ''){
+            // --FETCH
+            data.append('email', email)
+            await fetch(ngrok + '/api/user/' + id + "/email", {
+                method: 'PUT',
+                headers: {'Content-Type': 'multipart/form-data', Accept: 'application/json'},
+                body: data,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setItem('email', email)
+                })
+                .catch(err => console.error(err));
+        }
+        else {
+            Alert.alert("Email cannot be null!", [{text: "OK" }])
+        }
+    };
+
+    const changeUsername = async () => {
+        var data = new FormData();
+        if( username != ''){
+            // --FETCH
+            data.append('username', username)
+            await fetch(ngrok + '/api/user/' + id + "/username", {
+                method: 'PUT',
+                headers: {'Content-Type': 'multipart/form-data', Accept: 'application/json'},
+                body: data,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setItem('username', username)
+                })
+                .catch(err => console.error(err));
+        }
+        else {
+            Alert.alert("Username cannot be null!", [{text: "OK" }])
+        }
+    };
+
+
+
+
+    const changeImage = async (image) => { //image = the path
+        let body = new FormData();
+        const name = username + "_profile_image_path_" + image.substring(image.length - 8, image.length - 4) + ".jpg";
+        body.append('image', {uri: image, name: name, type: 'image/jpg'});
+        console.log("NAME", name)
+        fetch(ngrok + '/api/user/' + id + '/image',
+            {
+                method: 'PUT',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'multipart/form-data; boundary=6ff46e0b6b5148d984f148b6542e5a5d',
+                } ,
+                body : body
+                })
+            .then((res) => checkStatus(res))
+            .then((res) => res.json())
+            .then((res) => {
+                console.log("response" +JSON.stringify(res));
+            })
+            .catch((e) => console.log(e))
+            .done()
+        await setItem('image', "/media/" + name);
+    }
+
     const takePhotoFromCamera = () => {
-        ImagePicker.openCamera({
-            compressImageMaxWidth: 300,
-            compressImageMaxHeight: 300,
-            cropping: true,
-            compressImageQuality: 0.7
-        }).then(image => {
-            console.log(image);
-            setImage(image.path);
-            bs.current.snapTo(1);
-        });
+        try {
+            ImagePicker.openCamera({
+                compressImageMaxWidth: 300,
+                compressImageMaxHeight: 300,
+                cropping: true,
+                compressImageQuality: 0.7
+            }).then(image => {
+                setShowTabNavigator(true);
+                setImage(image.path);
+                bs.current.snapTo(1);
+
+            });
+        } catch(error) {
+            console.log(error)
+        }
+        finally {
+            setShowTabNavigator(true);
+        }
     }
 
     const choosePhotoFromLibrary = () => {
-        ImagePicker.openPicker({
-            width: 300,
-            height: 300,
-            cropping: true,
-            compressImageQuality: 0.7
-        }).then(image => {
-            console.log(image);
-            setImage(image.path)
-        });
+        try {
+            ImagePicker.openPicker({
+                width: 300,
+                height: 300,
+                cropping: true,
+                compressImageQuality: 0.7
+            }).then(image => {
+                if(image) {
+                    setShowTabNavigator(true);
+                    setImage(image.path);
+                }
+                else {
+                    setShowTabNavigator(true);
+                }
+            });
+        } catch(error) {
+            console.log(error)
+        }
+        finally {
+            setShowTabNavigator(true);
+        }
     }
 
     let renderInner;
@@ -70,7 +314,7 @@ const ProfileSettings = () => {
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.panelButton}
-                onPress={() => bs.current.snapTo(1)}>
+                onPress={() => {bs.current.snapTo(1); setShowTabNavigator(true)}}>
                 <Text style={styles.panelButtonTitle}>Cancel</Text>
             </TouchableOpacity>
         </View>
@@ -86,10 +330,12 @@ const ProfileSettings = () => {
     );
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
+            <View style={{flex: 1}}>
+            <Header navigation={navigation}/>
             <BottomSheet
                 ref={bs}
-                snapPoints={[330, 0]}
+                snapPoints={[340, -40]}
                 renderContent={renderInner}
                 renderHeader={renderHeader}
                 initialSnap={1}
@@ -100,7 +346,7 @@ const ProfileSettings = () => {
                 opacity: Animated.add(0.1, Animated.multiply(fall, 1.0)),
             }}>
                 <View style={{alignItems: 'center'}}>
-                    <TouchableOpacity onPress={() => bs.current.snapTo(0)}>
+                    <TouchableOpacity onPress={() => {setShowTabNavigator(false); bs.current.snapTo(0)}}>
                         <View
                             style={{
                                 height: 100,
@@ -160,14 +406,15 @@ const ProfileSettings = () => {
                             </ImageBackground>)}
                         </View>
                     </TouchableOpacity>
-                    <Text style={{marginTop: 10, fontSize: 18, fontWeight: 'bold'}}>
-                        John Doe
+                    <Text style={{marginTop: 10, fontSize: 20, fontWeight: '500', marginBottom: 15}}>
+                        {firstName} {lastName}
                     </Text>
                 </View>
                 <View style={styles.action}>
-                    <FontAwesome name="user-o" color={colors.text} size={20} />
+                    <FontAwesome name="user-o" color={colors.text} size={25} />
+                    <Text style={{fontSize: 15}}> Username: </Text>
                     <TextInput
-                        placeholder="Username"
+                        value={username}
                         placeholderTextColor="#666666"
                         autoCorrect={false}
                         style={[
@@ -176,12 +423,16 @@ const ProfileSettings = () => {
                                 color: colors.text,
                             },
                         ]}
+                        onChangeText={
+                            text => (setUsername(text))
+                        }
                     />
                 </View>
                 <View style={styles.action}>
-                    <FontAwesome name="user-o" color={colors.text} size={20} />
+                    <FontAwesome name="user-o" color={colors.text} size={25} />
+                    <Text style={{fontSize: 15}}> First name: </Text>
                     <TextInput
-                        placeholder="First Name"
+                        value={firstName}
                         placeholderTextColor="#666666"
                         autoCorrect={false}
                         style={[
@@ -190,12 +441,15 @@ const ProfileSettings = () => {
                                 color: colors.text,
                             },
                         ]}
+                        onChangeText={text => (setFirstName(text))}
+
                     />
                 </View>
                 <View style={styles.action}>
-                    <FontAwesome name="user-o" color={colors.text} size={20} />
+                    <FontAwesome name="user-o" color={colors.text} size={25} />
+                    <Text style={{fontSize: 15}}> Last name: </Text>
                     <TextInput
-                        placeholder="Last Name"
+                        value={lastName}
                         placeholderTextColor="#666666"
                         autoCorrect={false}
                         style={[
@@ -204,27 +458,15 @@ const ProfileSettings = () => {
                                 color: colors.text,
                             },
                         ]}
+                        onChangeText={text => (setLastName(text))}
+
                     />
                 </View>
                 <View style={styles.action}>
-                    <Feather name="phone" color={colors.text} size={20} />
+                    <FontAwesome name="envelope-o" color={colors.text} size={25} />
+                    <Text style={{fontSize: 15}}> Email: </Text>
                     <TextInput
-                        placeholder="Phone"
-                        placeholderTextColor="#666666"
-                        keyboardType="number-pad"
-                        autoCorrect={false}
-                        style={[
-                            styles.textInput,
-                            {
-                                color: colors.text,
-                            },
-                        ]}
-                    />
-                </View>
-                <View style={styles.action}>
-                    <FontAwesome name="envelope-o" color={colors.text} size={20} />
-                    <TextInput
-                        placeholder="Email"
+                        value={email}
                         placeholderTextColor="#666666"
                         keyboardType="email-address"
                         autoCorrect={false}
@@ -234,12 +476,14 @@ const ProfileSettings = () => {
                                 color: colors.text,
                             },
                         ]}
+                        onChangeText={text => (setEmail(text))}
                     />
                 </View>
                 <View style={styles.action}>
-                    <FontAwesome name="globe" color={colors.text} size={20} />
+                    <FontAwesome name="file-text-o" color={colors.text} size={25} />
+                    <Text style={{fontSize: 15}}> About: </Text>
                     <TextInput
-                        placeholder="Country"
+                        value={about}
                         placeholderTextColor="#666666"
                         autoCorrect={false}
                         style={[
@@ -248,28 +492,23 @@ const ProfileSettings = () => {
                                 color: colors.text,
                             },
                         ]}
+                        onChangeText={text => (setAbout(text))}
+
                     />
                 </View>
-                <View style={styles.action}>
-                    <Icon name="map-marker-outline" color={colors.text} size={20} />
-                    <TextInput
-                        placeholder="City"
-                        placeholderTextColor="#666666"
-                        autoCorrect={false}
-                        style={[
-                            styles.textInput,
-                            {
-                                color: colors.text,
-                            },
-                        ]}
-                    />
+                <View style={{justifyContent: 'center', alignItems: 'center'}}>
+                    <TouchableHighlight style={styles.commandButton} underlayColor="#e6f9ff" onPress={() => {
+                        updateInfo();
+                    }}>
+                        <Text style={{fontSize: 17, fontWeight: '600', color: '#00ace6'}}>Submit </Text>
+                    </TouchableHighlight>
                 </View>
-                <TouchableOpacity style={styles.commandButton} onPress={() => {}}>
-                    <Text style={styles.panelButtonTitle}>Submit</Text>
-                </TouchableOpacity>
             </Animated.View>
-            {/*<TabNavigator navigation={this.props.navigation}/>*/}
-        </View>
+            </View>
+            { showTabNavigator === true ?
+                <TabNavigator navigation={navigation}/> : null
+            }
+        </SafeAreaView>
     );
 };
 
@@ -279,19 +518,15 @@ export default ProfileSettings;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: 30
+        backgroundColor: '#DFEEEA',
     },
     commandButton: {
-        padding: 15,
-        borderRadius: 10,
-        backgroundColor: '#FF6347',
-        alignItems: 'center',
         marginTop: 10,
     },
     panel: {
         padding: 20,
-        backgroundColor: '#FFFFFF',
-        paddingTop: 20,
+        backgroundColor: '#DFEEEA',
+        paddingTop: 30,
         // borderTopLeftRadius: 20,
         // borderTopRightRadius: 20,
         // shadowColor: '#000000',
@@ -300,7 +535,7 @@ const styles = StyleSheet.create({
         // shadowOpacity: 0.4,
     },
     header: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#DFEEEA',
         shadowColor: '#333333',
         shadowOffset: {width: -1, height: -3},
         shadowRadius: 2,
@@ -321,26 +556,30 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     panelTitle: {
-        fontSize: 27,
+        fontSize: 30,
         height: 35,
+        fontFamily: 'Georgia'
     },
     panelSubtitle: {
-        fontSize: 14,
+        fontSize: 16,
         color: 'gray',
         height: 30,
         marginBottom: 10,
+        fontFamily: 'Georgia'
     },
     panelButton: {
         padding: 13,
         borderRadius: 10,
-        backgroundColor: '#FF6347',
+        backgroundColor: '#5E8B7E',
         alignItems: 'center',
         marginVertical: 7,
+        borderColor: '#2F5D62',
+        borderWidth: 3,
     },
     panelButtonTitle: {
         fontSize: 17,
-        fontWeight: 'bold',
-        color: 'white',
+        fontWeight: '600',
+        color: 'orange'
     },
     action: {
         flexDirection: 'row',
@@ -349,6 +588,9 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#f2f2f2',
         paddingBottom: 5,
+        justifyContent: 'center',
+        textAlign: 'center',
+        alignItems: 'center',
     },
     actionError: {
         flexDirection: 'row',
@@ -361,6 +603,5 @@ const styles = StyleSheet.create({
         flex: 1,
         marginTop: Platform.OS === 'ios' ? 0 : -12,
         paddingLeft: 10,
-        color: '#05375a',
     },
 });

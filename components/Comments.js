@@ -58,6 +58,21 @@ export default class Comments extends React.Component {
         comments: [],
         currentPost: '',
         comment: '',
+        addedComment: '',
+    };
+
+    addNotification = async (type, notified, postID, commentID) => {
+        // --FETCH
+        await fetch(ngrok + '/api/notification/' + type + '/to/' + notified + '/from/' +  this.currentUser.id + '/post/' + postID + '/comment/' + commentID, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        })
+            .then(response => response.json())
+            .then(data => {
+                    console.log(data);
+                }
+            )
+            .catch(err => console.error(err));
     };
 
     noComments(post) {
@@ -67,6 +82,7 @@ export default class Comments extends React.Component {
     }
 
     commentPost = async () => {
+        let result = []
         if(this.state.currentPost !== '') {
             // --FETCH
             await fetch( ngrok + '/api/posts/' + this.state.currentPost.id + '/users/' + this.currentUser.id + '/comment-post', {
@@ -76,15 +92,17 @@ export default class Comments extends React.Component {
             })
                 .then(response => response.json())
                 .then(data => {
+                    result = data
                     console.log(data);
                 })
                 .catch(err => console.error(err));
+            this.setState({addedComment: result})
             this.getAllComments();
         }
         else {
             Alert.alert("No like/comment button has been pressed!", [{text: "OK" }])
         }
-
+        return result;
     };
 
     getAllComments = async () => {
@@ -103,6 +121,11 @@ export default class Comments extends React.Component {
         return result
     }
 
+    addComment = async () => {
+        await this.commentPost();
+        await this.addNotification("comment", this.state.currentPost.user_id, this.state.currentPost.id, this.state.addedComment.id);
+    }
+
     async componentDidMount() {
         const resultComm = await this.getAllComments();
 
@@ -110,7 +133,6 @@ export default class Comments extends React.Component {
 
     render() {
         const screenHeight = Dimensions.get('window').height
-
         this.state.currentPost = this.props.route.params['current_post']
 
         return (
@@ -140,11 +162,14 @@ export default class Comments extends React.Component {
                     })
                 }
                 </ScrollView>
-                <View style={{position: 'absolute', bottom: 20}}>
+                <View style={{position: 'absolute', bottom: 80}}>
                     <View style={{flexDirection: 'row', marginTop: 5, marginLeft: 10,}}>
-                        <TextInput placeholder="Add comment..." defaultValue = {this.state.comment} style={styles.input} clearButtonMode="always" onChangeText={text => (this.state.comment = text)}/>
-                        <TouchableOpacity onPress={() => {this.commentPost()}}>
-                            <Icon style={{marginTop: 5, marginLeft: 4}} name="paper-plane-outline" size={25} />
+                        <TextInput ref={input => { this.textInput = input }} placeholder="Add comment..." style={styles.input} clearButtonMode="always" onChangeText={text => (this.state.comment = text)} multiline={true} numberOfLines={100}/>
+                        <TouchableOpacity onPress={() => {
+                            this.addComment();
+                            this.textInput.clear();
+                        }}>
+                            <Icon style={{marginTop: 20, marginLeft: 4}} name="paper-plane-outline" size={25} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -183,7 +208,7 @@ const styles = StyleSheet.create({
         marginLeft: 2,
     },
     input: {
-        height: 40,
+        height: 70,
         width: 330,
         borderWidth: 1,
         borderRadius: 10,

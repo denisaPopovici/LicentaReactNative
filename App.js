@@ -1,7 +1,7 @@
 //import { StatusBar } from 'expo-status-bar';
 import React, { Component } from 'react';
 // import {StackNavigator} from 'react-navigation';
-import {StyleSheet, Text, View, Button} from 'react-native';
+import {StyleSheet, Text, View, Button, AsyncStorage} from 'react-native';
 //import { Marker, Callout } from 'react-native-maps';
 //import MapView, { PROVIDER_GOOGLE }  from 'react-native-maps';
 import { useState, useEffect } from 'react';
@@ -20,6 +20,12 @@ import Feed from './components/Feed';
 import Comments from './components/Comments';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import SearchBar from './components/SearchBar';
+import Notifications from './components/Notifications';
+import Missions from './components/Missions';
+import AddPost from './components/AddPost';
+import StackNavigator from '@react-navigation/stack/src/navigators/createStackNavigator';
+import Post from './components/Utils/Post';
+import Experience from './components/Experience';
 
 // function arePointsNear(latitude, longitude, centerLatitude, centerLongitude, km) {
 //   var ky = 40000 / 360;
@@ -135,27 +141,51 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function App() {
-  const [token, setToken] = useState('');
+  const [id, setId] = useState(null);
+  const [initial, setInitial] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const userLogin = tok => {
-    console.log(tok);
-    setToken(tok);
-  };
+  useEffect(() => {
+    const fetchData = async () => { //retrieve user id
+      await getAsyncData().then(result => {
+        console.log(result, "REZULTATTTTTT")
+        setId(result);
+        setInitial(result === null ? "Login" : "Feed")
+        setLoading(false);
+      });
+    }
+    fetchData();
+  }, []);
+
+
+  const getAsyncData = async () => {
+    const id = await AsyncStorage.getItem('id')
+    return JSON.parse(id)
+  }
+
+  if(loading) {
+    return null;
+  }
 
   return (
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login" screenOptions={{headerShown: true, headerTitle: "", headerTransparent: true}}>
-          <Stack.Screen name="Login" component={Login} options={{header: () => null}}/>
-          <Stack.Screen name="Main" component={MainWindow} options={{header: () => null}}/>
-          <Stack.Screen name="Signup" component={Signup}/>
-          <Stack.Screen name="Map" component={Map}/>
-          <Stack.Screen name="Profile" component={ProfileScreen}/>
-          <Stack.Screen name="Feed" component={Feed} />
-          <Stack.Screen name="Comments" component={Comments} options={{headerTitle: "Comments", headerTransparent: false}}/>
-          <Stack.Screen name="ProfileSettings" component={ProfileSettings}/>
-          <Stack.Screen name="Search" component={SearchBar}/>
-        </Stack.Navigator>
-      </NavigationContainer>
+            <NavigationContainer>
+              <Stack.Navigator initialRouteName={initial}>
+                <Stack.Screen name="Login" component={Login} options={{header: () => null}}/>
+                <Stack.Screen name="Signup" component={Signup}/>
+                <Stack.Screen name="Map" component={Map}/>
+                <Stack.Screen name="Profile" component={ProfileScreen} options={{header: () => null}}/>
+                <Stack.Screen name="Feed" component={Feed} options={{header: () => null}}/>
+                <Stack.Screen name="Comments" component={Comments} options={{headerTitle: "Comments", headerTransparent: false}}/>
+                <Stack.Screen name="ProfileSettings" component={ProfileSettings} options={{header: () => null}}/>
+                <Stack.Screen name="Search" component={SearchBar} options={{header: () => null}}/>
+                <Stack.Screen name="Notifications" component={Notifications}/>
+                <Stack.Screen name="Post" component={Post}/>
+                <Stack.Screen name="Missions" component={Missions} options={{header: () => null}}/>
+                <Stack.Screen name="Experience" component={Experience} options={{header: () => null}}/>
+                <Stack.Screen name="AddPost" component={AddPost} options={{headerTitle: "New post", headerTransparent: false}}/>
+              </Stack.Navigator>
+            </NavigationContainer>
+
   );
   // return (
   //     <>

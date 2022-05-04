@@ -158,8 +158,9 @@ export default class Notifications extends React.Component {
     }
 
     render() {
+        const B = (props) => <Text style={{fontWeight: 'bold'}}>{props.children}</Text>
         return (
-            <View style={{flex: 1, marginTop: 5}} >
+            <View style={{flex: 1, marginTop: 5,width:'auto'}} >
                 <ScrollView>
                     {
                         this.state.notifications.map((notification) => {
@@ -169,41 +170,35 @@ export default class Notifications extends React.Component {
                             return (
                                 <View style={{marginTop: 5}}>
                                     {
-                                            <View style={{ flexDirection: 'row', marginBottom: 0, marginLeft: 2, borderWidth: 0.5, borderColor: 'gray'}}>
-                                                <View style={{flexDirection: 'row', alignItems: 'flex-start', flexGrow: 1, flex: 1, marginTop: 3, marginBottom: 3}}>
+                                            <View style={{ flexDirection: 'row', marginBottom: 0, marginLeft: 2, borderWidth: 0.5, borderColor: 'gray',width:'auto'}}>
+                                                <View style={{flexDirection: 'row', alignItems: 'center', flexGrow: 1, flex: 1, marginTop: 3, marginBottom: 3}}>
                                                     <Image style={styles.circleImage} source={{uri:  ngrok + notification.notifying_image }}/>
                                                     {
                                                         notification.type === 'like' ?
-                                                            <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', alignContent: 'center'}}>
-                                                                <Text style={{marginLeft: 5, fontWeight: '500', fontFamily: 'Georgia', fontSize: 17, flexWrap: 'wrap'}}>
-                                                                    {notification.notifying_username}
-                                                                </Text>
-                                                                <Text style={{marginLeft: 5, fontFamily: 'Georgia', fontSize: 17, flexWrap: 'wrap'}}>
-                                                                    liked your post.
+                                                            <View style={{display: 'flex',flexDirection:'row'}}>
+                                                            <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', alignContent: 'center', maxWidth:'85%'}}>
+                                                                <Text style={{marginLeft: 5,fontFamily: 'Georgia', fontSize: 17, flexWrap: 'wrap'}}>
+                                                                    <B> {notification.notifying_username} </B> liked your post.
                                                                 </Text>
                                                                 <Image style={styles.squareImage} source={{uri:  ngrok + notification.post_image }}/>
                                                             </TouchableOpacity>
+                                                                </View>
                                                             : notification.type === 'follow' ?
-                                                            <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                                                <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', alignContent: 'center'}}>
-                                                                    <Text style={{marginLeft: 5, fontWeight: '500', fontFamily: 'Georgia', fontSize: 17, flexWrap: 'wrap'}}>
-                                                                        {notification.notifying_username}
-                                                                    </Text>
-                                                                    <Text style={{marginLeft: 5, fontFamily: 'Georgia', fontSize: 17}}>
-                                                                        started following you.
+                                                            <View style={{display: 'flex',flexDirection: 'row',alignItems:'center'}}>
+                                                                <TouchableOpacity style={{flexDirection: 'row',maxWidth:'80%', alignItems: 'center', alignContent: 'center'}}>
+                                                                    <Text style={{marginLeft:5,marginTop:0, fontFamily: 'Georgia', fontSize: 17, flexWrap: 'wrap'}}>
+                                                                        <B> {notification.notifying_username} </B> started following you.
                                                                     </Text>
                                                                 </TouchableOpacity>
-                                                                <Button style={{backgroundColor: '#00ace6'}} onPress={() => {this.getProfileUserById(notification.notifying_id)}}
-                                                                        title={this.state.doesFollow === 0 ? "Follow" : "Following"}
-                                                                />
+                                                                <TouchableOpacity onPress={() => {this.getProfileUserById(notification.notifying_id)}}>
+                                                                        <Text style={{color:'#2d9ed4',fontSize:17}}> {this.state.doesFollow === 0 ? "Follow" : "Following"} </Text>
+                                                                </TouchableOpacity>
+
                                                             </View>
                                                             : notification.type === 'comment' ?
-                                                                <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', alignContent: 'center'}}>
-                                                                    <Text style={{marginLeft: 5, fontWeight: '500', fontFamily: 'Georgia', fontSize: 17, flexWrap: 'wrap'}}>
-                                                                        {notification.notifying_username}
-                                                                    </Text>
+                                                                <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', alignContent: 'center', maxWidth: "85%"}}>
                                                                     <Text style={{marginLeft: 5, fontFamily: 'Georgia', fontSize: 17, flexWrap: 'wrap'}}>
-                                                                        commented: {notification.comment_text}
+                                                                        <B> {notification.notifying_username} </B> commented: {notification.comment_text}
                                                                     </Text>
                                                                     <Image style={styles.squareImage} source={{uri:  ngrok + notification.post_image }}/>
                                                                 </TouchableOpacity>

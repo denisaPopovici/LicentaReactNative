@@ -121,6 +121,27 @@ class Feed extends React.Component {
 
     };
 
+    getLocationById = async (id) => {
+        let result = []
+        await fetch(ngrok + '/api/location-by-id/' + id, {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        })
+            .then(response => response.json())
+            .then(data => {
+                    result = data;
+                    console.log(data)
+                }
+            )
+            .catch(err => console.error(err));
+        this.props.navigation.navigate('Map', {
+            lat: parseFloat(result['latitude']),
+            lng: parseFloat(result['longitude']),
+            item: result,
+        }, {navigation: this.props.navigation});
+
+    };
+
     getProfileUserById = async (id) => {
         await fetch(ngrok + '/api/user/' + id +'/get-by-id', {
             method: 'GET',
@@ -263,13 +284,7 @@ class Feed extends React.Component {
                                         </View>
                                         <View style={{flexDirection: 'row', marginTop: 5, marginLeft: 10}}>
                                             <TouchableOpacity
-                                                onPress={() => {
-                                                this.props.navigation.navigate('Map', {
-                                                    lat: post.location_latitude,
-                                                    lng: post.location_longitude,
-                                                    item: post.location,
-                                                }, {navigation: this.props.navigation})
-                                            }}
+                                                onPress={() => {this.getLocationById(post.location)}}
                                             >
                                                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                                     <Icon name="pin" size={25}/>
@@ -305,14 +320,24 @@ class Feed extends React.Component {
                                         </View>
                                         <View style={{marginHorizontal: 10}}>
                                             <View style={{marginTop: 4, flexDirection: 'row', width: '32%'}}>
-                                                <TouchableOpacity style={{marginRight: 10}} onPress={() => {
-                                                    this.likePost({post});
-                                                    this.addNotification("like", post.user_id, post.id, 0);
-                                                }}>
-                                                    <Icon style={{color: '#15902C'}}
-                                                          name={this.state.likedPosts.includes(post.id) ? "heart" : "heart-outline"}
-                                                          size={25}/>
-                                                </TouchableOpacity>
+                                                {
+                                                    this.state.likedPosts.includes(post.id) ?
+                                                        <TouchableOpacity style={{marginRight: 10}} onPress={() => {
+                                                            this.likePost({post});
+                                                        }}>
+                                                            <Icon style={{color: '#15902C'}}
+                                                                  name="heart"
+                                                                  size={25}/>
+                                                        </TouchableOpacity>
+                                                        : <TouchableOpacity style={{marginRight: 10}} onPress={() => {
+                                                            this.likePost({post});
+                                                            this.addNotification("like", post.user_id, post.id, 0);
+                                                        }}>
+                                                            <Icon style={{color: '#15902C'}}
+                                                                  name="heart-outline"
+                                                                  size={25}/>
+                                                        </TouchableOpacity>
+                                                }
                                                 <TouchableOpacity onPress={() => {
                                                     this.props.navigation.navigate('Comments', {current_post: post})
                                                 }}>

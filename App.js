@@ -26,6 +26,7 @@ import AddPost from './components/AddPost';
 import StackNavigator from '@react-navigation/stack/src/navigators/createStackNavigator';
 import Post from './components/Utils/Post';
 import Experience from './components/Experience';
+import RateLocation from './components/RateLocation';
 
 // function arePointsNear(latitude, longitude, centerLatitude, centerLongitude, km) {
 //   var ky = 40000 / 360;
@@ -180,6 +181,7 @@ function App() {
                 <Stack.Screen name="Search" component={SearchBar} options={{header: () => null}}/>
                 <Stack.Screen name="Notifications" component={Notifications}/>
                 <Stack.Screen name="Post" component={Post}/>
+                <Stack.Screen name="RateLocation" component={RateLocation} options={{header: () => null}}/>
                 <Stack.Screen name="Missions" component={Missions} options={{header: () => null}}/>
                 <Stack.Screen name="Experience" component={Experience} options={{header: () => null}}/>
                 <Stack.Screen name="AddPost" component={AddPost} options={{headerTitle: "New post", headerTransparent: false}}/>

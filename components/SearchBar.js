@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, SafeAreaView } from "react-native";
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, SafeAreaView, AsyncStorage} from 'react-native';
 import { useNavigation } from "@react-navigation/native";
 import {Searchbar} from 'react-native-paper';
 import Header from './Utils/Header';
@@ -16,9 +16,18 @@ export default class SearchBar extends React.Component {
         filteredData: [],
     };
 
+    currentUser = {
+        id: '',
+    }
+
+    getAsyncData = async () => {
+        const id = await AsyncStorage.getItem('id');
+        this.currentUser.id = JSON.parse(id)
+    }
+
     fetchData = async () => {
         let result = [];
-        await fetch(ngrok + '/api/all-users', {
+        await fetch(ngrok + '/api/all-users-except/' + this.currentUser.id, {
             method: 'GET',
             headers: {'Content-Type': 'application/json', Accept: 'application/json'},
         }).then(response => response.json())
@@ -46,6 +55,7 @@ export default class SearchBar extends React.Component {
 
 
     async componentDidMount() {
+        await this.getAsyncData();
         const data = await this.fetchData();
     }
 

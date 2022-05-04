@@ -69,35 +69,35 @@ export default class TabNavigator extends React.Component {
 
             <View>
                 <View style={styles.container}>
-                    <TouchableHighlight style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
+                    <TouchableOpacity style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
                         this.getProfileUserById(this.state.id);
-                    }} activeOpacity={0.8} underlayColor="#DDDDDD">
+                    }} >
                         <View style={{alignItems: 'center', flexDirection: 'row', textAlign: 'center'}}>
                             <Icon name= 'person-outline'
                                   style={styles.icon}/>
                         </View>
-                    </TouchableHighlight>
-                    <TouchableHighlight style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
                         this.props.navigation.navigate('Feed')
-                    }} activeOpacity={0.8} underlayColor="#DDDDDD">
+                    }}>
                         <View style={{alignItems: 'center', flexDirection: 'row', textAlign: 'center'}}>
                             <Icon name="home-outline" style={styles.icon}/>
                         </View>
-                    </TouchableHighlight>
-                    <TouchableHighlight style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
                         this.props.navigation.navigate('Search')
-                    }} activeOpacity={0.8} underlayColor="#DDDDDD">
+                    }} >
                         <View style={{alignItems: 'center', flexDirection: 'row', textAlign: 'center'}}>
                             <Icon name="search-outline" style={styles.icon}/>
                         </View>
-                    </TouchableHighlight>
-                    <TouchableHighlight style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
                         this.props.navigation.navigate('Missions')
-                    }} activeOpacity={0.8} underlayColor="#DDDDDD">
+                    }} >
                         <View style={{alignItems: 'center', flexDirection: 'row', textAlign: 'center'}}>
                             <Icon name="map-outline" style={styles.icon}/>
                         </View>
-                    </TouchableHighlight>
+                    </TouchableOpacity>
                 </View>
             </View>
         )

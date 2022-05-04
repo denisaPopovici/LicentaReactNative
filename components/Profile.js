@@ -75,6 +75,27 @@ export default class ProfileScreen extends React.Component {
         return this.state.likedPosts.some(item => post.id === item.id_post);
     }
 
+    getLocationById = async (id) => {
+        let result = []
+        await fetch(ngrok + '/api/location-by-id/' + id, {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        })
+            .then(response => response.json())
+            .then(data => {
+                result = data;
+                console.log(data)
+                }
+            )
+            .catch(err => console.error(err));
+        this.props.navigation.navigate('Map', {
+            lat: parseFloat(result['latitude']),
+            lng: parseFloat(result['longitude']),
+            item: result,
+        }, {navigation: this.props.navigation});
+
+    };
+
     allPostsUserLikes = async () => {
         let result = []
         let index = 0
@@ -136,6 +157,21 @@ export default class ProfileScreen extends React.Component {
             this.doesUserFollowUser();
     };
 
+    unfollowUser = async () => {
+        // --FETCH
+        await fetch(ngrok + '/api/user/' + this.currentUser.id + '/unfollows/' + this.state.profileUser.id, {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        })
+            .then(response => response.json())
+            .then(data => {
+                //console.log(data);
+            })
+            .catch(err => console.error(err));
+        this.getFollowers();
+        this.doesUserFollowUser();
+    };
+
     getPosts= async () => {
         let result = [];
         await fetch(ngrok + '/api/user/' + this.state.profileUser.id + '/posts', {
@@ -144,6 +180,7 @@ export default class ProfileScreen extends React.Component {
         }).then(response => response.json())
             .then(data => {
                 result = data;
+                console.log("POSTSSSS    ", data)
             })
             .catch(err => console.error(err));
         this.setState({posts: result} )
@@ -211,6 +248,17 @@ export default class ProfileScreen extends React.Component {
         await this.getAsyncData();
     }
 
+    async followButtonWasPressed() {
+        if(this.state.doesFollow){ //unfollow user
+            await this.unfollowUser();
+        }
+        else {
+            //follow user
+            await this.followUser();
+            await this.addNotification("follow", this.state.profileUser.id, 0, 0);
+        }
+    }
+
     async componentDidMount() {
         await this.getAsyncData();
         const result = await this.getPosts();
@@ -256,7 +304,7 @@ export default class ProfileScreen extends React.Component {
                                         borderColor: 'black',
                                         width: 180,
                                         alignItems: 'center',
-                                    }} onPress={() => { this.followUser(); this.addNotification("follow", this.state.profileUser.id, 0, 0)}}>
+                                    }} onPress={() => {this.followButtonWasPressed()}}>
                                         <View
                                             style={{alignItems: 'flex-start', flexDirection: 'row', textAlign: 'left'}}>
                                             { this.state.doesFollow === 0 ?
@@ -264,7 +312,7 @@ export default class ProfileScreen extends React.Component {
                                                 : <Icon name='checkbox-outline' size={15} style={{marginTop: 3}}/>
                                             }
                                             { this.state.doesFollow === 0 ?
-                                                <Text style={{fontSize: 15, marginTop: 2}}>Follow </Text>
+                                                <Text style={{fontSize: 15, marginTop: 2}}> Follow </Text>
                                                 : <Text style={{fontSize: 15, marginTop: 2}}> Following </Text>
                                             }
                                         </View>
@@ -298,7 +346,7 @@ export default class ProfileScreen extends React.Component {
                                     <View style={{marginBottom: 20}}>
                                         <Divider width={1} orientation='vertical'/>
                                         <View style={{flexDirection: 'row', marginTop: 5, marginLeft: 10}}>
-                                            <TouchableOpacity>
+                                            <TouchableOpacity onPress={() => {this.getLocationById(post.location)}}>
                                                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                                     <Icon name="pin" size={20}/>
                                                     <Text style={{
@@ -345,14 +393,24 @@ export default class ProfileScreen extends React.Component {
                                         </View>
                                         <View style={{marginHorizontal: 10, marginLeft: 15}}>
                                             <View style={{marginTop: 4, flexDirection: 'row', width: '32%'}}>
-                                                <TouchableOpacity style={{marginRight: 10}} onPress={() => {
-                                                    this.likePost({post});
-                                                    this.addNotification("like", post.user_id, post.id, 0);
-                                                }}>
-                                                    <Icon style={{color: '#15902C'}}
-                                                          name={this.state.likedPosts.includes(post.id) ? "heart" : "heart-outline"}
-                                                          size={25}/>
-                                                </TouchableOpacity>
+                                                {
+                                                    this.state.likedPosts.includes(post.id) ?
+                                                        <TouchableOpacity style={{marginRight: 10}} onPress={() => {
+                                                            this.likePost({post});
+                                                        }}>
+                                                            <Icon style={{color: '#15902C'}}
+                                                                  name="heart"
+                                                                  size={25}/>
+                                                        </TouchableOpacity>
+                                                        : <TouchableOpacity style={{marginRight: 10}} onPress={() => {
+                                                            this.likePost({post});
+                                                            this.addNotification("like", post.user_id, post.id, 0);
+                                                        }}>
+                                                            <Icon style={{color: '#15902C'}}
+                                                                  name="heart-outline"
+                                                                  size={25}/>
+                                                        </TouchableOpacity>
+                                                }
                                                 <TouchableOpacity onPress={() => {
                                                     this.props.navigation.navigate('Comments', {current_post: post})
                                                 }}>

@@ -26,7 +26,6 @@ import Header from './Utils/Header';
 export default class MainWindow extends React.Component {
     constructor(props) {
         super(props);
-        this.getAsyncData();
     }
 
     getAsyncData = async () => {
@@ -46,10 +45,12 @@ export default class MainWindow extends React.Component {
         this.currentUser.image = JSON.parse(image)
         this.currentUser.about = JSON.parse(about)
         this.currentUser.level = JSON.parse(level)
+        return JSON.parse(id)
     }
 
     state = {
         locations: [],
+        selectedValue: '',
     };
 
     currentUser = {
@@ -97,9 +98,9 @@ export default class MainWindow extends React.Component {
 
     };
 
-    getLocations = async () => {
+    getRecommendedLocations = async (id) => {
         let result = [];
-        await fetch(ngrok + '/api/locations', {
+        await fetch(ngrok + '/api/recommendations/' + id, {
             method: 'GET',
             headers: {'Content-Type': 'application/json', Accept: 'application/json'},
         }).then(response => response.json())
@@ -107,24 +108,66 @@ export default class MainWindow extends React.Component {
                 result = data;
             })
             .catch(err => console.error(err));
-
+        this.setState({locations: result} )
         return result;
     };
 
 
-    async componentDidMount() {
-        const result = await this.getLocations();
+    getRandomLocations = async () => {
+        let result = [];
+        await fetch(ngrok + '/api/random-locations/' + this.currentUser.id, {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        }).then(response => response.json())
+            .then(data => {
+                result = data;
+            })
+            .catch(err => console.error(err));
         this.setState({locations: result} )
+        return result;
+    };
+
+    async componentDidMount() {
+        await this.getAsyncData().then(result => {
+                this.getRecommendedLocations(result);
+            }
+        );
     }
+
+    options = [
+        '', 'Recommended', 'Random'
+    ];
+
+
+    handleFilterInput = async(event) => {
+        let value = event.target.options;
+        this.setState({selectedValue: value})
+        if(value === 'Recommended'){
+            await this.getRecommendedLocations();
+        }
+        else
+            await this.getRandomLocations();
+    };
 
 
     render() {
+        //this.setState({selectedValue: this.options[0]})
         return (
             <SafeAreaView style={styles.container}>
                 <Header navigation={this.props.navigation}/>
                 <Text style={styles.title}>
                     Your current missions:
                 </Text>
+                    <View style={{justifyContent: "space-between", flexDirection: "row"}}>
+                        <TouchableOpacity style={{flexDirection: "row", alignItems: "center", marginLeft: 20, borderWidth: 1, borderRadius: 30, backgroundColor: "#ade2a8", marginBottom: 5 }} onPress={() => {this.getRecommendedLocations(this.currentUser.id)}}>
+                            <Icon size={25} style={{padding: 5}} name="star-half"/>
+                            <Text style={{fontFamily: "Georgia", fontSize: 20}}> Recommended </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{flexDirection: "row", alignItems: "center", marginRight: 20, borderWidth: 1, borderRadius: 30, backgroundColor: "#ade2a8", marginBottom: 5}} onPress={() => {this.getRandomLocations()}}>
+                            <Icon size={25} style={{padding: 5}} name="help"/>
+                            <Text style={{fontFamily: "Georgia", fontSize: 20}}> Random </Text>
+                        </TouchableOpacity>
+                    </View>
                 <ScrollView contentContainerStyle={{ flexGrow: 1 }}>{
                     this.state.locations.map( item  => {
                         return (
@@ -194,7 +237,10 @@ const styles = StyleSheet.create({
         fontFamily: 'Georgia',
         color: '#2F5D62',
     },
-
+    dropdown1BtnTxtStyle: {color: '#444', textAlign: 'left'},
+    dropdown1DropdownStyle: {backgroundColor: '#EFEFEF'},
+    dropdown1RowStyle: {backgroundColor: '#EFEFEF', borderBottomColor: '#C5C5C5'},
+    dropdown1RowTxtStyle: {color: '#444', textAlign: 'left'},
 });
 
 

@@ -54,11 +54,45 @@ export default class Comments extends React.Component {
         level: '',
     }
 
+    profile_user = {
+        id: '',
+        username: '',
+        first_name: '',
+        last_name: '',
+        email: '',
+        image: '',
+        about: '',
+        level: '',
+    }
+
     state = {
         comments: [],
         currentPost: '',
         comment: '',
         addedComment: '',
+    };
+
+    getProfileUserById = async (id) => {
+        await fetch(ngrok + '/api/user/' + id +'/get-by-id', {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        })
+            .then(response => response.json())
+            .then(data => {
+                    this.profile_user.id = data['id']
+                    this.profile_user.first_name = data['first_name']
+                    this.profile_user.last_name = data['last_name']
+                    this.profile_user.username = data['username']
+                    this.profile_user.email = data['email']
+                    this.profile_user.about = data['about']
+                    this.profile_user.image = data['image']
+                    this.profile_user.level = data['level']
+                    this.props.navigation.navigate('Profile', {'profile_user' : this.profile_user});
+
+                }
+            )
+            .catch(err => console.error(err));
+
     };
 
     addNotification = async (type, notified, postID, commentID) => {
@@ -105,6 +139,20 @@ export default class Comments extends React.Component {
         return result;
     };
 
+    deleteComment = async (id) => {
+        // --FETCH
+        await fetch(ngrok + '/api/delete-comment/' + id, {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        })
+            .then(response => response.json())
+            .then(data => {
+                //console.log(data);
+            })
+            .catch(err => console.error(err));
+        this.getAllComments();
+    };
+
     getAllComments = async () => {
         let result = []
         // --FETCH
@@ -147,12 +195,19 @@ export default class Comments extends React.Component {
                                         <View style={{ flexDirection: 'row', marginBottom: 0, marginLeft: 2, borderWidth: 0.5, borderColor: 'gray'}}>
                                             <View style={{flexDirection: 'row', alignItems: 'flex-start', flexGrow: 1, flex: 1, marginTop: 3, marginBottom: 3}}>
                                                 <Image style={styles.circleImage} source={{uri:  ngrok + comment.profile_image }}/>
-                                                <TouchableOpacity>
+                                                <TouchableOpacity onPress={() => this.getProfileUserById(comment.user_id)}>
                                                     <Text style={{marginTop: 5, marginLeft: 5, fontWeight: '700', fontFamily: 'Georgia', fontSize: 18, flexWrap: 'wrap'}}>
                                                         {comment.username}
                                                     </Text>
                                                 </TouchableOpacity>
                                                 <Text style={{textAlign: "auto", flexWrap: "wrap", fontSize: 18, fontFamily: 'Georgia', flexShrink: 2, marginTop: 5}}> {comment.text} </Text>
+                                                { this.currentUser.id === comment.user_id ?
+                                                    <TouchableOpacity onPress={() =>
+                                                        Alert.alert("Just a second!", "Are you sure you want to delete this comment?",[{text: "Yes", onPress: () => {this.deleteComment(comment.id)}}, {text: "No"}])}
+                                                    >
+                                                        <Icon name="close-outline" size={20} style={{color: "red"}}/>
+                                                    </TouchableOpacity> : null
+                                                }
                                             </View>
                                         </View>
                                         : null

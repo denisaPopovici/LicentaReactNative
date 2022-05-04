@@ -39,18 +39,7 @@ const Experience = ({navigation}) => {
     const [showTabNavigator, setShowTabNavigator] = useState(true);
     const [xp, setXP] = useState(null);
 
-    let profile_user = {
-        id: '',
-        username: '',
-        first_name: '',
-        last_name: '',
-        email: '',
-        image: '',
-        about: '',
-        level: '',
-    }
-
-    const getLevelObj = async () => {
+    const getLevelObj = async (level) => {
         console.log(level, " ;V;;VV")
         let result = [];
         await fetch(ngrok + '/api/level/' + level, {
@@ -128,23 +117,22 @@ const Experience = ({navigation}) => {
 
     useEffect(() => {
         const fetchData = async () => {
-            await getAsyncData();
+            return getAsyncData();
         }
         const getLevelObject = async () => {
-            await getLevelObj().then(result => {
-                let difference = result['superior_limit'] - xp
-                console.log("diff ", difference)
-                setDifference(difference);
-                let percent = (xp * 100) / result['superior_limit']
-                console.log("percent ", percent.toFixed(2))
-                setPercent(percent.toFixed(2))
-            });
+            await fetchData().then(result => {
+                setXP(result[1]);
+                getLevelObj(result[0]).then(result => {
+                    let difference = result['superior_limit'] - xp
+                    console.log("diff ", difference)
+                    setDifference(difference);
+                    let percent = (xp * 100) / result['superior_limit']
+                    console.log("percent ", percent.toFixed(2))
+                    setPercent(percent.toFixed(2))})});
         }
         const listener = navigation.addListener('focus', () => {
             getLevelObject();
         });
-
-        fetchData();
         return listener;
     }, [navigation]);
 
@@ -158,7 +146,7 @@ const Experience = ({navigation}) => {
         const about = await AsyncStorage.getItem('about');
         const level = await AsyncStorage.getItem('level');
         const xp = await AsyncStorage.getItem('xp')
-        setXP(JSON.parse(xp));
+        //setXP(JSON.parse(xp));
         setId(JSON.parse(id))
         setUsername(JSON.parse(username))
         setFirstName(JSON.parse(first_name))
@@ -167,6 +155,7 @@ const Experience = ({navigation}) => {
         setImage(JSON.parse(image))
         setAbout(JSON.parse(about))
         setLevel(JSON.parse(level))
+        return [JSON.parse(level), JSON.parse(xp)]
     }
 
 

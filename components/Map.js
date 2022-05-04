@@ -94,7 +94,7 @@ export default function Map({ route, navigation }) {
                 </View>
                 <ScrollView persistentScrollbar={true} showsVerticalScrollIndicator={true} style={{marginLeft: 5, marginTop: 0, marginRight: 10, flexShrink: 1, borderWidth: 0, flexGrow: 1}}>
                     <Text>
-                        {item.description} ja cnscvue cs cnajb csbefhujbacb asmc sabsalkdnbfefuoilsab cshgfuoahl hudgfuei feugfousbf egfusbfe hcsouc cduihiv vvgsduoivjbjrnd vdvd
+                        {item.description}  feugfousbf egfusbfe hcsouc cduihiv vvgsduoivjbjrnd vdvd
                     </Text>
                 </ScrollView>
             </View>
@@ -117,13 +117,12 @@ export default function Map({ route, navigation }) {
                 title="I AM HERE!"
                 onPress={() => {
                     if(arePointsNear(myLatitude, myLongitude, lat, lng, 0.5 ) === true) {
-                        let mesaj = "You just gained " + item.xp + "XP for visiting " + item.name + ". Would you like to post a picture from your trip?"
-                        Alert.alert("Amazing!", mesaj,[{text: "Absolutely", onPress: () => {navigation.navigate("AddPost")}}, {text: "Maybe another time"}]);
                         addXP(item.xp);
                         addVisitedLocation(item.id);
+                        navigation.navigate("RateLocation", {navigation: navigation, location: item})
                     }
                     else {
-                        Alert.alert("You are not close enough yet! Keep going! ", [{text: "OK!"}])
+                        Alert.alert("Oops!", "You are not close enough yet. Keep going!", [{text: "OK!"}])
                     }
                 }
                 }

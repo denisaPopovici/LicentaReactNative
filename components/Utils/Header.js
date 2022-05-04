@@ -65,7 +65,6 @@ const Header = ({navigation}) => {
         const id = await AsyncStorage.getItem('id')
         const level = await AsyncStorage.getItem('level')
         setLevel(JSON.parse(level));
-        console.log(JSON.parse(id), "IDDDDDDDDDD")
         return JSON.parse(id)
     }
 

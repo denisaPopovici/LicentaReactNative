@@ -27,6 +27,49 @@ import StackNavigator from '@react-navigation/stack/src/navigators/createStackNa
 import Post from './components/Utils/Post';
 import Experience from './components/Experience';
 import RateLocation from './components/RateLocation';
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getPerformance} from "firebase/performance";
+import * as Sentry from '@sentry/react-native';
+
+const routingInstrumentation = new Sentry.ReactNavigationV4Instrumentation({
+  enableTimeToInitialDisplay: true,
+});
+
+Sentry.init({
+  dsn: 'https://0b07dcc7170bb14a8c31c9286032ebe1@o4505046525935616.ingest.us.sentry.io/4506973753966592',
+  enableAutoSessionTracking: true,
+  sessionTrackingIntervalMillis: 10000,
+  //Performance
+  integrations: [
+    new Sentry.ReactNativeTracing({
+      enableUserInteractionTracing: true,
+      routingInstrumentation
+    }),
+  ],
+  tracesSampleRate: 1.0,
+});
+
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyA71bzuKiNVotAo25DYHL7S93IJP6_h_zo",
+  authDomain: "licentareactnative.firebaseapp.com",
+  projectId: "licentareactnative",
+  storageBucket: "licentareactnative.appspot.com",
+  messagingSenderId: "870675735033",
+  appId: "1:870675735033:web:d726cb1a348c6ccd9e1d28",
+  measurementId: "G-8K8GZMLZQJ"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const performance = getPerformance(app);
 
 // function arePointsNear(latitude, longitude, centerLatitude, centerLongitude, km) {
 //   var ky = 40000 / 360;
@@ -211,7 +254,7 @@ function App() {
 //   );
 // }
 
-export default App;
+export default Sentry.wrap(App);
 
 const styles = StyleSheet.create({
   container: {

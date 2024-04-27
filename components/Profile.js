@@ -341,7 +341,7 @@ export default class ProfileScreen extends React.Component {
                     </View> :
                     <ScrollView>
                         {
-                            this.state.posts.map((post, index) => {
+                            this.state.posts.reverse().map((post, index) => {
                                 return (
                                     <View style={{marginBottom: 20}}>
                                         <Divider width={1} orientation='vertical'/>

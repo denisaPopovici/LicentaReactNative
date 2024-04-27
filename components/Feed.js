@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import * as Sentry from '@sentry/react-native';
 
 import {
     Alert,
@@ -214,15 +215,25 @@ class Feed extends React.Component {
 
 
     getPosts= async () => {
+        const transaction = Sentry.startTransaction({
+            name: 'Fetch Feed',
+            op: 'network.request',
+        })
         let result = [];
         await fetch(ngrok + '/api/user/' + this.currentUser.id + '/feed-posts', {
             method: 'GET',
             headers: {'Content-Type': 'application/json', Accept: 'application/json'},
-        }).then(response => response.json())
+        }).then(response => {
+            transaction.finish();
+            return response.json()
+        })
             .then(data => {
                 result = data;
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                transaction.finish(err);
+                console.error(err)
+            });
         this.setState({posts: result} )
         return result;
     };
@@ -254,7 +265,7 @@ class Feed extends React.Component {
                     <Header navigation={this.props.navigation}/>
                     <ScrollView>
                         {
-                            this.state.posts.map((post, index) => {
+                            this.state.posts.length ? this.state.posts.map((post, index) => {
                                 return (
                                     <View style={{marginBottom: 30}}>
                                         <Divider width={1} orientation='vertical'/>
@@ -352,7 +363,7 @@ class Feed extends React.Component {
                                         </View>
                                     </View>
                                 )
-                            })
+                            }) : null
                         }
                     </ScrollView>
                     <TabNavigator navigation={this.props.navigation}/>

@@ -1,1 +1,1 @@
-global.ngrok = 'https://de71-2a02-2f0e-51d-1f00-88bc-a5ae-7d57-80a.ngrok.io'
+global.ngrok = 'https://2e0a-2a02-2f0e-816-9600-99ea-beb3-5d71-3508.ngrok-free.app'

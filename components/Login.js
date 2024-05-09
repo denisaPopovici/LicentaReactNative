@@ -1,10 +1,8 @@
 import React from 'react';
-import {View, Text, StyleSheet, TextInput, Button, Alert} from 'react-native';
-import {AsyncStorage} from 'react-native';
+import {View, Text, StyleSheet, TextInput, Button, Alert, AsyncStorage} from 'react-native';
+import PropTypes from 'prop-types';
+
 class Login extends React.Component {
-  constructor(props) {
-    super(props);
-  }
 
   state = {
     credentials: {username: '', password: ''},
@@ -104,14 +102,14 @@ class Login extends React.Component {
         <TextInput
           autoCapitalize="none"
           style={styles.input}
-          onChangeText={text => (this.state.credentials.username = text)}
+          onChangeText={text => this.setState({credentials : { username: text}})}
         />
         <Text style={styles.text}> Password:</Text>
         <TextInput
           autoCapitalize="none"
           secureTextEntry={true}
           style={styles.input}
-          onChangeText={text => (this.state.credentials.password = text)}
+          onChangeText={text => this.setState({credentials : { password: text}})}
         />
         <Button title="LOG IN" onPress={() => this.login()} />
         <View style={styles.view}>
@@ -152,4 +150,9 @@ const styles = StyleSheet.create({
   },
 });
 
+Login.propTypes = {
+  navigation: PropTypes.shape({
+    navigate: PropTypes.func.isRequired,
+  }).isRequired,
+};
 export default Login;

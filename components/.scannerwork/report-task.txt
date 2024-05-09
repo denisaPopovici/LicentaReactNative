@@ -1,0 +1,6 @@
+projectKey=licenta-react-native
+serverUrl=http://localhost:9000
+serverVersion=10.5.0.89998
+dashboardUrl=http://localhost:9000/dashboard?id=licenta-react-native
+ceTaskId=5cfb095d-2f4b-475d-a8dc-5a6edb70d5fb
+ceTaskUrl=http://localhost:9000/api/ce/task?id=5cfb095d-2f4b-475d-a8dc-5a6edb70d5fb

@@ -1,5 +1,6 @@
 import React from 'react';
 import * as Sentry from '@sentry/react-native';
+import PropTypes from 'prop-types';
 
 import {
   Alert,
@@ -18,9 +19,6 @@ import TabNavigator from './Utils/TabNavigator';
 import {useIsFocused} from '@react-navigation/native';
 
 class Feed extends React.Component {
-  constructor(props) {
-    super(props);
-  }
 
   getAsyncData = async () => {
     const id = await AsyncStorage.getItem('id');
@@ -57,10 +55,6 @@ class Feed extends React.Component {
     currentPost: '', //id of the post the user wants to like/comment on
     likedPosts: [], //all the posts the user likes
   };
-
-  isLiked(post) {
-    return this.state.likedPosts.some(item => post.id === item.id_post);
-  }
 
   profile_user = {
     id: '',
@@ -121,9 +115,6 @@ class Feed extends React.Component {
         },
       )
         .then(response => response.json())
-        .then(data => {
-          //console.log(data);
-        })
         .catch(err => console.error(err));
       this.getPosts();
       this.allPostsUserLikes();
@@ -177,37 +168,6 @@ class Feed extends React.Component {
       .catch(err => console.error(err));
   };
 
-  didUserlikePost = async ({post}) => {
-    if (post !== '') {
-      // --FETCH
-      await fetch(
-        ngrok +
-          '/api/user/' +
-          this.currentUser.id +
-          '/post/' +
-          post.id +
-          '/did-like',
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-        },
-      )
-        .then(response => response.json())
-        .then(data => {
-          {
-            console.log(data.toString() + 'data');
-            return data.length !== 0;
-          }
-        })
-        .catch(err => console.error(err));
-    } else {
-      Alert.alert('No like/comment button has been pressed!', [{text: 'OK'}]);
-    }
-  };
-
   allPostsUserLikes = async () => {
     let result = [];
     let index = 0;
@@ -218,13 +178,10 @@ class Feed extends React.Component {
     })
       .then(response => response.json())
       .then(data => {
-        {
-          for (var i = 0; i < data.length; i++) {
-            var obj = data[i];
-            result[index] = obj.id_post;
+          for (let value of data) {
+            result[index] = value.id_post;
             index = index + 1;
           }
-        }
       })
       .catch(err => console.error(err));
     this.setState({likedPosts: result});
@@ -254,12 +211,6 @@ class Feed extends React.Component {
       });
     this.setState({posts: result});
     return result;
-  };
-
-  getPostsEvent = async () => {
-    await this.getAsyncData().then(() => {
-      this.getPosts();
-    });
   };
 
   async componentDidMount() {
@@ -460,6 +411,13 @@ export default function (props) {
   const isFocused = useIsFocused();
   return <Feed {...props} isFocused={isFocused} />;
 }
+
+Feed.propTypes = {
+  navigation: PropTypes.shape({
+    navigate: PropTypes.func.isRequired,
+  }).isRequired,
+  isFocused: PropTypes.bool,
+};
 
 const styles = StyleSheet.create({
   container: {

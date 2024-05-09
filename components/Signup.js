@@ -1,10 +1,8 @@
 import React from 'react';
 import {View, Text, StyleSheet, TextInput, Button, Alert} from 'react-native';
+import PropTypes from 'prop-types';
 
 class Signup extends React.Component {
-  constructor(props) {
-    super(props);
-  }
 
   state = {
     credentials: {
@@ -14,14 +12,6 @@ class Signup extends React.Component {
       first_name: '',
       last_name: '',
     },
-  };
-
-  noHandler = () => {
-    this.state.credentials.username = '';
-    this.state.credentials.password = '';
-    this.state.credentials.email = '';
-    this.state.credentials.first_name = '';
-    this.state.credentials.last_name = '';
   };
 
   signup = async () => {
@@ -48,15 +38,13 @@ class Signup extends React.Component {
             'A user with that username already exists.'
           ) {
             Alert.alert('This username already exists!', [{text: 'OK'}]);
-          } else {
-            if (String(data.email) === 'Enter a valid email address.') {
+          } else if (String(data.email) === 'Enter a valid email address.') {
               Alert.alert('Please enter a valid email address.!', [
                 {text: 'OK'},
               ]);
-            } else {
+          } else {
               this.props.navigation.navigate('Login');
             }
-          }
         })
         .catch(err => console.error(err));
     } else {
@@ -73,26 +61,26 @@ class Signup extends React.Component {
           autoCapitalize="none"
           defaultValue={this.state.credentials.username}
           style={styles.input}
-          onChangeText={text => (this.state.credentials.username = text)}
+          onChangeText={text => this.setState({credentials : { username: text}})}
         />
         <Text style={styles.text}> First name:</Text>
         <TextInput
           defaultValue={this.state.credentials.first_name}
           style={styles.input}
-          onChangeText={text => (this.state.credentials.first_name = text)}
+          onChangeText={text => this.setState({credentials : { first_name: text}})}
         />
         <Text style={styles.text}> Last name:</Text>
         <TextInput
           defaultValue={this.state.credentials.last_name}
           style={styles.input}
-          onChangeText={text => (this.state.credentials.last_name = text)}
+          onChangeText={text => this.setState({credentials : { last_name: text}})}
         />
         <Text style={styles.text}> Email address:</Text>
         <TextInput
           autoCapitalize="none"
           defaultValue={this.state.credentials.email}
           style={styles.input}
-          onChangeText={text => (this.state.credentials.email = text)}
+          onChangeText={text => this.setState({credentials : { email: text}})}
         />
         <Text style={styles.text}> Password:</Text>
         <TextInput
@@ -100,7 +88,7 @@ class Signup extends React.Component {
           defaultValue={this.state.credentials.password}
           secureTextEntry={true}
           style={styles.input}
-          onChangeText={text => (this.state.credentials.password = text)}
+          onChangeText={text => this.setState({credentials : { password: text}})}
         />
         <Button title="SIGN UP" onPress={this.signup} />
       </View>
@@ -125,5 +113,11 @@ const styles = StyleSheet.create({
     fontSize: 30,
   },
 });
+
+Signup.propTypes = {
+    navigation: PropTypes.shape({
+        navigate: PropTypes.func.isRequired,
+    }).isRequired,
+};
 
 export default Signup;
